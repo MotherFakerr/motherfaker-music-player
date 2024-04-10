@@ -50,6 +50,19 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     async initMusicList(url: string): Promise<void> {
+        const matchRes = url.match(/^https:\/\/github\.com/);
+        if (matchRes) {
+            await this._initGithubMusicList(url);
+        } else {
+            await this._initNormalMusicList(url);
+        }
+    }
+
+    setCurMusicIndex(index: number): void {
+        this.curMusicIndex = index;
+    }
+
+    private _initGithubMusicList = async (url: string): Promise<void> => {
         try {
             const urlParts = url.split('/');
             const repoParts = urlParts[urlParts.length - 1].split('.');
@@ -66,9 +79,21 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         } catch (error) {
             alert('输入的github地址不合法');
         }
-    }
+    };
 
-    setCurMusicIndex(index: number): void {
-        this.curMusicIndex = index;
-    }
+    private _initNormalMusicList = async (url: string): Promise<void> => {
+        try {
+            const matchRes = url.match(/\/([^/?]+)\.(\w+)(?:\?.*)?$/);
+            if (!matchRes) {
+                throw new Error();
+            }
+            const [_, name, type] = matchRes;
+            if (!['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(type)) {
+                throw new Error();
+            }
+            this.musicList = [{ name, url }];
+        } catch (error) {
+            alert('输入的音乐地址不合法');
+        }
+    };
 }

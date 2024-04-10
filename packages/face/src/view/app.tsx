@@ -20,7 +20,7 @@ export class App extends React.Component<Partial<IProps>, IState> {
     }
 
     public render(): React.ReactElement {
-        const { musicList, curMusic, setCurMusicIndex, initMusicList } = this.props.musicStore!;
+        const { musicList, curMusic, curMusicIndex, setCurMusicIndex, initMusicList } = this.props.musicStore!;
 
         return (
             <div className='App'>
@@ -28,7 +28,7 @@ export class App extends React.Component<Partial<IProps>, IState> {
                 <button type='button' onClick={() => initMusicList(this.state.url)}>
                     加载
                 </button>
-                {curMusic && <audio autoPlay controls src={curMusic.url} />}
+                <audio autoPlay controls src={curMusic?.url} onEnded={() => setCurMusicIndex(curMusicIndex + 1)} />
                 {musicList.map((music, index) => (
                     <button type='button' onClick={() => setCurMusicIndex(index)}>
                         {music.name}
