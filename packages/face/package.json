@@ -15,8 +15,10 @@
         "build": "webpack --config ../../webpack/webpack.config.js"
     },
     "dependencies": {
+        "@ant-design/icons": "^5.3.6",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.11",
+        "antd": "^5.16.1",
         "mobx": "^6.8.0",
         "mobx-react": "^7.6.0",
         "react": "^18.2.0",

@@ -54,7 +54,7 @@ module.exports = {
             },
             // 解析url
             {
-                test: /\.(svg|woff|woff2|jpg|png|ttf|eot)$/,
+                test: /\.(svg|woff|woff2|jpg|jpeg|png|ttf|eot)$/,
                 use: {
                     loader: 'url-loader',
                     options: {

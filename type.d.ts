@@ -6,3 +6,9 @@ type Class = {
     [k: string]: ANY;
     new (...args: ANY): ANY;
 };
+
+declare module '*.svg';
+declare module '*.png';
+declare module '*.jpg';
+declare module '*.jpeg';
+declare module '*.md';

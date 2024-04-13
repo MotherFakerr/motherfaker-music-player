@@ -1,0 +1,106 @@
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    background-color: #373737;
+    height: 52px;
+    color: white;
+    border-top: 2px solid #4c4c4c;
+
+
+    .bottom-bar-content {
+        margin: auto;
+        width: 800px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        .controller-content {
+            display: flex;
+            align-items: center;
+            width: 137px;
+          
+            button {
+                border-radius: 50%;
+                margin-right: 12px;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border: 2px solid white;
+    
+                .anticon-caret-right {
+                    transform: translateX(1px);
+                }
+                &:hover {
+                    color: white !important;
+                    border-color: white !important;
+                    box-shadow: 0 0 5px 0px white;
+    
+                }
+    
+                
+            }
+    
+            .prev, .next {
+                width: 24px;
+                height: 24px;
+                color: #c0c0c0;
+                font-size: 14px;
+                border-width: 1px;
+            }
+            .play-pause {
+                width: 32px;
+                height: 32px;
+                color: #ffffff;
+                font-size: 22px;
+            }
+        }
+        .audio-thumb {
+            width: 34px;
+            height: 34px;
+            margin-right: 15px;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            img {
+                width: 100%;
+                height: 100%;
+            }
+            .mask {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                display: block;
+                width: 34px;
+                height: 35px;
+                background: linear-gradient(to bottom, rgb(255 255 255 / 30%), transparent);
+                clip-path: polygon(0 0, 100% 0, 0 100%, 0 100%);
+            }
+        }
+        .main-content {
+            display: flex;
+            width: 500px;
+            flex-direction: column;
+            height: 100%;
+            .audio-info {
+                display: flex;
+                height: 12px;
+                margin-top: 7px;
+                margin-bottom: 3px;
+                align-items: center;
+
+                .audio-name {
+                    max-width: 300px;
+                    color: #e8e8e8;
+                    font-size: 12px;
+                }
+                .artist-name {
+                    margin-left: 15px;
+                    color: #9b9b9b;
+                    font-size: 12px;
+                }
+            }
+        }
+    }
+}
