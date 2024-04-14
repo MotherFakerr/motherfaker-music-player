@@ -20,13 +20,6 @@ export class App extends React.Component<Partial<IProps>, IState> {
         };
     }
 
-    componentDidMount(): void {
-        const { initMusicList, initAudioElement } = this.props.musicStore!;
-        initAudioElement();
-
-        initMusicList('https://github.com/MotherFakerr/My-Suno-Collection');
-    }
-
     public render(): React.ReactElement {
         const { musicList, setCurMusicIndex, initMusicList } = this.props.musicStore!;
 

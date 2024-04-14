@@ -20,8 +20,9 @@ export class BottomBar extends React.Component<Partial<IProps>> {
     }
 
     componentDidMount(): void {
-        const { initAudioElement } = this.props.musicStore!;
+        const { initMusicList, initAudioElement } = this.props.musicStore!;
         initAudioElement();
+        initMusicList('https://github.com/MotherFakerr/My-Suno-Collection');
     }
 
     public render(): React.ReactElement {
