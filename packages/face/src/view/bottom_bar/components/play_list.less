@@ -1,0 +1,71 @@
+.play-list {
+    .ant-popover {
+        border-radius: 6px;
+        width: 500px !important;
+        height: 300px !important;
+        position: fixed !important;
+        bottom: 54px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        overflow: hidden !important;
+        .ant-popover-inner {
+            padding: 0;
+        }
+    }
+
+    .play-list-list {
+        color: #e2e2e2;
+        background-color: #1e2125;
+        .ant-list-header {
+            display: flex;
+            align-items: center;
+            background-color: #1e1e1e;
+            height: 39px;
+            padding: 0 26px;
+            border-bottom: 1px solid black;
+            .title {
+                font-size: 14px;
+                font-weight: 700;
+            }
+        }
+      
+        .ant-list-items {
+            height: 300px;
+            overflow: auto;
+        }
+        .list-item {
+            height: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            &:hover {
+                background-color: #111316;
+            }
+            div {
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                padding-left: 10px;
+                flex-shrink: 0;
+                &:nth-child(1) {
+                    width: 20px;
+                    .iconfont {
+                        font-size: 22px;
+                        color: #b60a0a;
+                    }
+                }
+                &:nth-child(2) {
+                    flex: 1;
+                }
+                &:nth-child(3) {
+                    width: 80px;
+                }
+                &:nth-child(4) {
+                    width: 45px;
+                }
+            }
+            
+        }
+    }
+}

@@ -1,18 +1,12 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { Button } from 'antd';
-import {
-    CaretRightOutlined,
-    LoadingOutlined,
-    PauseOutlined,
-    SoundOutlined,
-    StepBackwardOutlined,
-    StepForwardOutlined,
-} from '@ant-design/icons';
 import './index.less';
 import { ProgressBar } from './components/progress_bar';
 import { EN_PLAYING_STATUS, IMusicStore } from '../../store/music_store';
 import DEFAULT_ALBUM from '../../assets/img/default_album.jpg';
+import { VolumnController } from './components/volume_controller';
+import { PlayList } from './components/play_list';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -39,9 +33,7 @@ export class BottomBar extends React.Component<Partial<IProps>> {
             playingStatus,
             audioElement,
             setCurMusicIndex,
-            initMusicList,
             updateCurProgress,
-            setBProgressDragging,
             playAudio,
             pauseAudio,
             prevAudio,
@@ -54,7 +46,7 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                 <div className='bottom-bar-content'>
                     <div className='controller-content'>
                         <Button ghost className='prev' onClick={() => prevAudio()}>
-                            <StepBackwardOutlined />
+                            <span className='iconfont icon-step-backward' />
                         </Button>
                         <Button
                             ghost
@@ -69,7 +61,7 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                             {this._renderControllerButtons()}
                         </Button>
                         <Button ghost className='next' onClick={() => nextAudio()}>
-                            <StepForwardOutlined />
+                            <span className='iconfont icon-step-forward' />
                         </Button>
                     </div>
                     <div className='audio-thumb'>
@@ -84,7 +76,8 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                         <ProgressBar />
                     </div>
                     <div className='extra-content'>
-                        <SoundOutlined />
+                        <VolumnController />
+                        <PlayList />
                     </div>
                 </div>
                 <audio
@@ -113,11 +106,11 @@ export class BottomBar extends React.Component<Partial<IProps>> {
     private _renderControllerButtons(): React.ReactNode {
         const { playingStatus } = this.props.musicStore!;
         if (playingStatus === EN_PLAYING_STATUS.PLAYING) {
-            return <PauseOutlined />;
+            return <span className='pause iconfont icon-pause' />;
         }
         if (playingStatus === EN_PLAYING_STATUS.PAUSED) {
-            return <CaretRightOutlined />;
+            return <span className='play iconfont icon-caret-right' />;
         }
-        return <LoadingOutlined />;
+        return <span className='loading iconfont icon-loading' />;
     }
 }

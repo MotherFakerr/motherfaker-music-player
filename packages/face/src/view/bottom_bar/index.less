@@ -6,8 +6,6 @@
     height: 52px;
     color: white;
     border-top: 2px solid #4c4c4c;
-
-
     .bottom-bar-content {
         margin: auto;
         width: 800px;
@@ -28,32 +26,49 @@
                 justify-content: center;
                 align-items: center;
                 border: 2px solid white;
-    
-                .anticon-caret-right {
-                    transform: translateX(1px);
-                }
+
                 &:hover {
                     color: white !important;
                     border-color: white !important;
                     box-shadow: 0 0 5px 0px white;
-    
                 }
-    
-                
             }
     
             .prev, .next {
                 width: 24px;
                 height: 24px;
                 color: #c0c0c0;
-                font-size: 14px;
                 border-width: 1px;
+                .iconfont {
+                    font-size: 14px;
+                }
             }
             .play-pause {
                 width: 32px;
                 height: 32px;
                 color: #ffffff;
-                font-size: 22px;
+                .iconfont {
+                    font-size: 22px;
+
+                    &.play {
+                        transform: translateX(1px);
+                    }  
+                }
+
+                .loading {    
+                    @keyframes rotate {
+                        /* 从 0 度开始旋转，到 360 度结束，即一圈 */
+                        from {
+                        transform: rotate(0deg);
+                        }
+                        to {
+                        transform: rotate(360deg);
+                        }
+                    }
+                    animation: rotate 2s infinite linear;
+                  }
+                  
+                  
             }
         }
         .audio-thumb {
@@ -99,6 +114,25 @@
                     margin-left: 15px;
                     color: #9b9b9b;
                     font-size: 12px;
+                }
+            }
+        }
+        .extra-content {
+            margin-left: 32px;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            .icon-button {
+                font-size: 22px;
+                background: linear-gradient(to bottom right, #adadad, #7a7a7a);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                margin-right: 6px;
+                &:hover {
+                    text-shadow: 0 0 2px white;
+                    cursor: pointer;
                 }
             }
         }

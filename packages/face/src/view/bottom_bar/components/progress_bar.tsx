@@ -1,8 +1,8 @@
 import React from 'react';
-import { Slider } from 'antd';
 import './progress_bar.less';
 import { inject, observer } from 'mobx-react';
 import { IMusicStore } from '../../../store/music_store';
+import { MySlider } from '../../../components/slider';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -19,12 +19,11 @@ export class ProgressBar extends React.Component<Partial<IProps>> {
 
         return (
             <div className='progress-bar'>
-                <Slider
+                <MySlider
                     value={curProgress}
                     min={0}
                     max={100}
                     step={0.1}
-                    tooltip={{ open: false }}
                     onChange={(e) => {
                         updateCurProgress(e);
                         setBProgressDragging(true);

@@ -4,45 +4,9 @@
     font-size: 12px;
     height: 100%;
     margin-bottom: 10px;
-    .ant-slider {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        margin: 0;
-        .ant-slider-rail, .ant-slider-track {
-            border-radius: 10px;
-            height: 8px;
-        }
 
-        .ant-slider-rail {
-            background-color: #535353;
-        }
-        .ant-slider-track {
-            background-color: #c70c0c;
-        }
-        .ant-slider-handle {
-            inset-block-start: -1px;
-            &::before {
-                width: 6px;
-                height: 6px;
-                background-color: #c70c0c;
-                z-index: +1;
-                inset-inline-start: 5px;
-                inset-block-start: 4px;
-                border-radius: 50%;
-            }
-            &:hover::after, &::after {
-                height: 16px;
-                width: 16px;
-                inset-inline-start: 0;
-                inset-block-start: -1px;
-                box-shadow: 1px 1px 1px 2px #535353;
-            }
-
-            &:hover::after {
-                box-shadow: 1px 1px 1px 2px #878787; 
-            }
-        }
+    .ant-slider-rail, .ant-slider-track {
+        height: 8px;
     }
     .time {
         margin-left: 14px;

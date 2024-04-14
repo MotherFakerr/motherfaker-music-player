@@ -55,12 +55,9 @@ module.exports = {
             // 解析url
             {
                 test: /\.(svg|woff|woff2|jpg|jpeg|png|ttf|eot)$/,
-                use: {
-                    loader: 'url-loader',
-                    options: {
-                        name: 'images/[hash].[ext]',
-                        limit: 1024,
-                    },
+                type: 'asset/resource', // 使用asset/resource来替代url-loader
+                generator: {
+                    filename: 'images/[hash][ext][query]', // 使用generator来指定输出文件的名称
                 },
             },
         ],

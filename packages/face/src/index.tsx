@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './index.less';
 import { Provider as MobxProvider } from 'mobx-react';
 import { App } from './view/app';
 import { store } from './store';

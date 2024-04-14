@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { action, computed, makeObservable, observable } from 'mobx';
+import { message } from 'antd';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
 
@@ -22,6 +23,7 @@ interface IGithubFile {
 export interface IMusic {
     name: string;
     url: string;
+    duration: string;
     artist?: string;
     thumbUrl?: string;
 }
@@ -34,6 +36,7 @@ export interface IMusicStore {
     curProgress: number;
     bProgressDragging: boolean;
     playingStatus: EN_PLAYING_STATUS;
+    curVolume: number;
     initAudioElement: () => void;
     initMusicList: (url: string) => Promise<void>;
     setCurMusicIndex: (index: number) => void;
@@ -48,6 +51,7 @@ export interface IMusicStore {
     nextAudio: () => void;
     loadAudio: () => void;
     isMusicPrepared: () => boolean;
+    updateVolume: (volume: number) => void;
 }
 
 @registerStore('musicStore')
@@ -64,6 +68,8 @@ export class MusicStore extends AbstractStore implements IMusicStore {
 
     playingStatus = EN_PLAYING_STATUS.PAUSED;
 
+    curVolume = 100;
+
     get curMusic(): IMusic | undefined {
         return this.musicList[this.curMusicIndex];
     }
@@ -78,6 +84,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             curProgress: observable,
             bProgressDragging: observable,
             playingStatus: observable,
+            curVolume: observable,
 
             initAudioElement: action.bound,
             initMusicList: action.bound,
@@ -91,6 +98,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             nextAudio: action.bound,
             loadAudio: action.bound,
             isMusicPrepared: action.bound,
+            updateVolume: action.bound,
         });
     }
 
@@ -164,6 +172,11 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         return this.audioElement.readyState >= 3;
     }
 
+    updateVolume(volume: number): void {
+        this.curVolume = volume;
+        this.audioElement.volume = volume / 100;
+    }
+
     private _initGithubMusicList = async (url: string): Promise<void> => {
         try {
             const urlParts = url.split('/');
@@ -174,12 +187,12 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             const data = (await response.json()) as IGithubFile[];
             if (response.ok) {
                 const audioFiles = data.filter((file) => ['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(file.name.split('.').pop() ?? ''));
-                this.musicList = audioFiles.map((file) => ({ name: file.name, url: file.download_url }));
+                this.musicList = audioFiles.map((file) => ({ name: file.name, url: file.download_url, duration: '11:11' }));
             } else {
                 throw new Error();
             }
         } catch (error) {
-            alert('输入的github地址不合法');
+            message.warning('输入的github地址不合法');
         }
     };
 
@@ -193,9 +206,9 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             if (!['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(type)) {
                 throw new Error();
             }
-            this.musicList = [{ name, url }];
+            this.musicList = [{ name, url, duration: '11:11' }];
         } catch (error) {
-            alert('输入的音乐地址不合法');
+            message.warning('输入的音乐地址不合法');
         }
     };
 }

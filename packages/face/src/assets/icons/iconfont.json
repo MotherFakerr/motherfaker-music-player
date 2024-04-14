@@ -1,0 +1,93 @@
+{
+  "id": "4507246",
+  "name": "github-music-player",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5810218",
+      "name": "loading",
+      "font_class": "loading",
+      "unicode": "e7f1",
+      "unicode_decimal": 59377
+    },
+    {
+      "icon_id": "4767104",
+      "name": "pause",
+      "font_class": "pause",
+      "unicode": "e7fe",
+      "unicode_decimal": 59390
+    },
+    {
+      "icon_id": "6598342",
+      "name": "caret-right",
+      "font_class": "caret-right",
+      "unicode": "e8ec",
+      "unicode_decimal": 59628
+    },
+    {
+      "icon_id": "6598350",
+      "name": "step-backward",
+      "font_class": "step-backward",
+      "unicode": "e8ef",
+      "unicode_decimal": 59631
+    },
+    {
+      "icon_id": "6598351",
+      "name": "step-forward",
+      "font_class": "step-forward",
+      "unicode": "e8f0",
+      "unicode_decimal": 59632
+    },
+    {
+      "icon_id": "1445052",
+      "name": "pause-circle-outline",
+      "font_class": "pause-circle-outline",
+      "unicode": "e837",
+      "unicode_decimal": 59447
+    },
+    {
+      "icon_id": "1445102",
+      "name": "play-circle-outline",
+      "font_class": "play-circle-outline",
+      "unicode": "e84f",
+      "unicode_decimal": 59471
+    },
+    {
+      "icon_id": "1445104",
+      "name": "playlist-play",
+      "font_class": "playlist-play",
+      "unicode": "e850",
+      "unicode_decimal": 59472
+    },
+    {
+      "icon_id": "1445310",
+      "name": "skip-next-circle-outline",
+      "font_class": "skip-next-circle-outline",
+      "unicode": "e8ac",
+      "unicode_decimal": 59564
+    },
+    {
+      "icon_id": "1445311",
+      "name": "skip-previous-circle-outline",
+      "font_class": "skip-previous-circle-outline",
+      "unicode": "e8ad",
+      "unicode_decimal": 59565
+    },
+    {
+      "icon_id": "1445566",
+      "name": "volume-high",
+      "font_class": "volume-high",
+      "unicode": "e925",
+      "unicode_decimal": 59685
+    },
+    {
+      "icon_id": "1445569",
+      "name": "volume-off",
+      "font_class": "volume-off",
+      "unicode": "e926",
+      "unicode_decimal": 59686
+    }
+  ]
+}
