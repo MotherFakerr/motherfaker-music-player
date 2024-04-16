@@ -20,14 +20,12 @@ export class BottomBar extends React.Component<Partial<IProps>> {
     }
 
     componentDidMount(): void {
-        const { initMusicList, initAudioElement } = this.props.musicStore!;
+        const { initAudioElement } = this.props.musicStore!;
         initAudioElement();
-        initMusicList('https://github.com/MotherFakerr/My-Suno-Collection');
     }
 
     public render(): React.ReactElement {
         const {
-            musicList,
             curMusic,
             curMusicIndex,
             bProgressDragging,
@@ -96,8 +94,6 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                         updateCurProgress((e.currentTarget.currentTime / e.currentTarget.duration) * 100);
                     }}
                     src={curMusic ? curMusic.url : undefined}>
-                    {/* <source src={`${curMusic?.url}?raw=true`} /> */}
-                    {/* <source src='https://github.com/MotherFakerr/My-Suno-Collection/blob/main/Battle%20of%20Destiny.mp3?raw=true' /> */}
                     <track kind='captions' />
                 </audio>
             </div>

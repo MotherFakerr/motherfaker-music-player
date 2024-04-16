@@ -1,9 +1,9 @@
 import React from 'react';
 import './play_list.less';
 import { inject, observer } from 'mobx-react';
-import { Avatar, List, Popover } from 'antd';
-import DEFAULT_ALBUM from '../../../assets/img/default_album.jpg';
-import { IMusic, IMusicStore } from '../../../store/music_store';
+import { List, Popover } from 'antd';
+import { IMusicStore } from '../../../store/music_store';
+import { IMusic } from '../../../utils/interface';
 
 interface IProps {
     musicStore: IMusicStore;

@@ -3,29 +3,14 @@ import { action, computed, makeObservable, observable } from 'mobx';
 import { message } from 'antd';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
+import { formatTime, getMusicDuration, getMusicMetadata, saveMusics } from '../utils/music_metadata_helper';
+import { IGithubFile, IMusic } from '../utils/interface';
+import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
 
 export enum EN_PLAYING_STATUS {
     PLAYING = 'playing',
     PAUSED = 'paused',
     LOADING = 'loading',
-}
-interface IGithubFile {
-    name: string;
-    type: string;
-    size: number;
-    sha: string;
-    url: string;
-    git_url: string;
-    html_url: string;
-    download_url: string;
-}
-
-export interface IMusic {
-    name: string;
-    url: string;
-    duration: string;
-    artist?: string;
-    thumbUrl?: string;
 }
 
 export interface IMusicStore {
@@ -38,7 +23,8 @@ export interface IMusicStore {
     playingStatus: EN_PLAYING_STATUS;
     curVolume: number;
     initAudioElement: () => void;
-    initMusicList: (url: string) => Promise<void>;
+    initMusicList: () => Promise<void>;
+    fetchMusicList: (url: string) => Promise<void>;
     setCurMusicIndex: (index: number) => void;
     setBProgressDragging: (bDragging: boolean) => void;
     // 更新进度显示
@@ -52,6 +38,7 @@ export interface IMusicStore {
     loadAudio: () => void;
     isMusicPrepared: () => boolean;
     updateVolume: (volume: number) => void;
+    deleteMusic: (id: number) => void;
 }
 
 @registerStore('musicStore')
@@ -88,6 +75,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
 
             initAudioElement: action.bound,
             initMusicList: action.bound,
+            fetchMusicList: action.bound,
             setCurMusicIndex: action.bound,
             updateCurProgress: action.bound,
             setBProgressDragging: action.bound,
@@ -106,12 +94,21 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         this.audioElement = document.getElementById('audio') as HTMLAudioElement;
     }
 
-    async initMusicList(url: string): Promise<void> {
+    async initMusicList(): Promise<void> {
+        const musicList = await MusicIndexDBHelper.getMusics();
+        this.musicList = musicList;
+    }
+
+    async fetchMusicList(url: string): Promise<void> {
+        if (!MusicIndexDBHelper.isOk) {
+            message.warning('请先等待indexdb初始化完成');
+            return;
+        }
         const matchRes = url.match(/^https:\/\/github\.com/);
         if (matchRes) {
-            await this._initGithubMusicList(url);
+            await this._fetchGithubMusicList(url);
         } else {
-            await this._initNormalMusicList(url);
+            await this._fetchNormalMusicList(url);
         }
     }
 
@@ -181,17 +178,24 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         this.audioElement.volume = volume / 100;
     }
 
-    private _initGithubMusicList = async (url: string): Promise<void> => {
+    async deleteMusic(id: number): Promise<void> {
+        await MusicIndexDBHelper.deleteMusics([id]);
+    }
+
+    private _fetchGithubMusicList = async (url: string): Promise<void> => {
         try {
             const urlParts = url.split('/');
             const repoParts = urlParts[urlParts.length - 1].split('.');
             const repoName = repoParts[0];
             const ownerName = urlParts[urlParts.length - 2];
             const response = await fetch(`https://api.github.com/repos/${ownerName}/${repoName}/contents/`);
-            const data = (await response.json()) as IGithubFile[];
             if (response.ok) {
+                const data = (await response.json()) as IGithubFile[];
                 const audioFiles = data.filter((file) => ['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(file.name.split('.').pop() ?? ''));
-                this.musicList = audioFiles.map((file) => ({ name: file.name, url: file.download_url, duration: '11:11' }));
+                const pureMusics = await getMusicMetadata(audioFiles);
+
+                const musics = await saveMusics(pureMusics);
+                this.musicList.push(...musics);
             } else {
                 throw new Error();
             }
@@ -200,7 +204,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         }
     };
 
-    private _initNormalMusicList = async (url: string): Promise<void> => {
+    private _fetchNormalMusicList = async (url: string): Promise<void> => {
         try {
             const matchRes = url.match(/\/([^/?]+)\.(\w+)(?:\?.*)?$/);
             if (!matchRes) {
@@ -210,7 +214,15 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             if (!['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(type)) {
                 throw new Error();
             }
-            this.musicList = [{ name, url, duration: '11:11' }];
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error();
+            }
+            const blob = await res.blob();
+            const duration = await getMusicDuration(blob);
+            const pureMusic = { name, url, duration, blob };
+            const [music] = await saveMusics([pureMusic]);
+            this.musicList.push(music);
         } catch (error) {
             message.warning('输入的音乐地址不合法');
         }

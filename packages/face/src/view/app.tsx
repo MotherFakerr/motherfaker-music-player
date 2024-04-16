@@ -3,6 +3,7 @@ import { inject, observer } from 'mobx-react';
 import './app.less';
 import { IMusicStore } from '../store/music_store';
 import { BottomBar } from './bottom_bar';
+import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -20,14 +21,20 @@ export class App extends React.Component<Partial<IProps>, IState> {
         };
     }
 
+    async componentDidMount() {
+        const { initMusicList } = this.props.musicStore!;
+        await MusicIndexDBHelper.init();
+        initMusicList();
+    }
+
     public render(): React.ReactElement {
-        const { musicList, setCurMusicIndex, initMusicList } = this.props.musicStore!;
+        const { musicList, setCurMusicIndex, fetchMusicList } = this.props.musicStore!;
 
         return (
             <div className='app'>
                 <BottomBar />
                 <input type='text' onChange={(e) => this.setState({ url: e.target.value })} />
-                <button type='button' onClick={() => initMusicList(this.state.url)}>
+                <button type='button' onClick={() => fetchMusicList(this.state.url)}>
                     加载
                 </button>
 
