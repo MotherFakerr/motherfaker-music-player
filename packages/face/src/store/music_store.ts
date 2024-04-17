@@ -96,7 +96,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
 
     async initMusicList(): Promise<void> {
         const musicList = await MusicIndexDBHelper.getMusics();
-        this.musicList = musicList;
+        this.musicList = musicList.map((m) => ({ ...m, blobUrl: URL.createObjectURL(m.blob) }));
     }
 
     async fetchMusicList(url: string): Promise<void> {
@@ -195,7 +195,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
                 const pureMusics = await getMusicMetadata(audioFiles);
 
                 const musics = await saveMusics(pureMusics);
-                this.musicList.push(...musics);
+                this.musicList.push(...musics.map((m) => ({ ...m, blobUrl: URL.createObjectURL(m.blob) })));
             } else {
                 throw new Error();
             }
@@ -222,7 +222,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             const duration = await getMusicDuration(blob);
             const pureMusic = { name, url, duration, blob };
             const [music] = await saveMusics([pureMusic]);
-            this.musicList.push(music);
+            this.musicList.push({ ...music, blobUrl: URL.createObjectURL(music.blob) });
         } catch (error) {
             message.warning('输入的音乐地址不合法');
         }

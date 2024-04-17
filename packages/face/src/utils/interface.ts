@@ -12,6 +12,7 @@ export interface IGithubFile {
 
 export interface IMusic extends IPureMusic {
     id: number;
+    blobUrl?: string;
 }
 
 export interface IPureMusic {
