@@ -3,7 +3,7 @@ import { action, computed, makeObservable, observable } from 'mobx';
 import { message } from 'antd';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
-import { formatTime, getMusicDuration, getMusicMetadata, saveMusics } from '../utils/music_metadata_helper';
+import { getMusicDuration, getMusicMetadata, saveMusics } from '../utils/music_metadata_helper';
 import { IGithubFile, IMusic } from '../utils/interface';
 import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
 

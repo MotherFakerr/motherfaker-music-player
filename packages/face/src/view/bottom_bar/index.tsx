@@ -93,7 +93,7 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                         }
                         updateCurProgress((e.currentTarget.currentTime / e.currentTarget.duration) * 100);
                     }}
-                    src={curMusic ? curMusic.url : undefined}>
+                    src={curMusic ? URL.createObjectURL(curMusic.blob) : undefined}>
                     <track kind='captions' />
                 </audio>
             </div>
