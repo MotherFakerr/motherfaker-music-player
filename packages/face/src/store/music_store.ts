@@ -39,7 +39,8 @@ export interface IMusicStore {
     loadAudio: () => void;
     isMusicPrepared: () => boolean;
     updateVolume: (volume: number) => void;
-    deleteMusic: (id: number) => void;
+    deleteMusic: (id: number) => Promise<void>;
+    clearMusicList: () => Promise<void>;
 }
 
 @registerStore('musicStore')
@@ -90,6 +91,8 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             loadAudio: action.bound,
             isMusicPrepared: action.bound,
             updateVolume: action.bound,
+            deleteMusic: action.bound,
+            clearMusicList: action.bound,
         });
     }
 
@@ -183,7 +186,22 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     async deleteMusic(id: number): Promise<void> {
+        const { sha1 } = this.musicList.find((m) => m.id === id)!;
         await MusicIndexDBHelper.deleteMusics([id]);
+        this.musicList = this.musicList.filter((m) => m.id !== id);
+        this._musicHashSet.delete(sha1);
+        if (this.musicList.length === 0) {
+            this.pauseAudio();
+            this.audioElement.load();
+        }
+    }
+
+    async clearMusicList(): Promise<void> {
+        await MusicIndexDBHelper.deleteMusics(this.musicList.map((m) => m.id));
+        this.musicList = [];
+        this._musicHashSet = new Set<string>();
+        this.pauseAudio();
+        this.audioElement.load();
     }
 
     private _fetchGithubMusicList = async (url: string): Promise<void> => {
