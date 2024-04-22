@@ -1,10 +1,11 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { action, computed, makeObservable, observable } from 'mobx';
 import { message } from 'antd';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
-import { getMusicDuration, getMusicMetadata, saveMusics } from '../utils/music_metadata_helper';
-import { IGithubFile, IMusic } from '../utils/interface';
+import { getMusicMetadata, saveMusics } from '../utils/music_metadata_helper';
+import { IMusic, IMusicFile, IPureMusic } from '../utils/interface';
 import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
 
 export enum EN_PLAYING_STATUS {
@@ -43,6 +44,8 @@ export interface IMusicStore {
 
 @registerStore('musicStore')
 export class MusicStore extends AbstractStore implements IMusicStore {
+    _musicHashSet = new Set<string>();
+
     audioElement: HTMLAudioElement = document.createElement('audio');
 
     musicList: IMusic[] = [];
@@ -97,6 +100,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     async initMusicList(): Promise<void> {
         const musicList = await MusicIndexDBHelper.getMusics();
         this.musicList = musicList.map((m) => ({ ...m, blobUrl: URL.createObjectURL(m.blob) }));
+        this._musicHashSet = new Set<string>([...this.musicList.map((m) => m.sha1)]);
     }
 
     async fetchMusicList(url: string): Promise<void> {
@@ -190,12 +194,10 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             const ownerName = urlParts[urlParts.length - 2];
             const response = await fetch(`https://api.github.com/repos/${ownerName}/${repoName}/contents/`);
             if (response.ok) {
-                const data = (await response.json()) as IGithubFile[];
+                const data = (await response.json()) as IMusicFile[];
                 const audioFiles = data.filter((file) => ['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(file.name.split('.').pop() ?? ''));
                 const pureMusics = await getMusicMetadata(audioFiles);
-
-                const musics = await saveMusics(pureMusics);
-                this.musicList.push(...musics.map((m) => ({ ...m, blobUrl: URL.createObjectURL(m.blob) })));
+                this._postFetchMusic(pureMusics);
             } else {
                 throw new Error();
             }
@@ -218,13 +220,30 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             if (!res.ok) {
                 throw new Error();
             }
-            const blob = await res.blob();
-            const duration = await getMusicDuration(blob);
-            const pureMusic = { name, url, duration, blob };
-            const [music] = await saveMusics([pureMusic]);
-            this.musicList.push({ ...music, blobUrl: URL.createObjectURL(music.blob) });
+            const pureMusics = await getMusicMetadata([{ name, download_url: url }]);
+            this._postFetchMusic(pureMusics);
         } catch (error) {
             message.warning('输入的音乐地址不合法');
+        }
+    };
+
+    private _postFetchMusic = async (pureMusics: IPureMusic[]): Promise<void> => {
+        const newPureMusics = [];
+        const musicHashSet = new Set<string>([...this._musicHashSet]);
+        for (const music of pureMusics) {
+            if (!musicHashSet.has(music.sha1)) {
+                newPureMusics.push(music);
+                musicHashSet.add(music.sha1);
+            } else {
+                message.warning(`${music.name}已加载`);
+            }
+        }
+
+        const newMusics = await saveMusics(newPureMusics);
+
+        for (const music of newMusics) {
+            this._musicHashSet.add(music.sha1);
+            this.musicList.push({ ...music, blobUrl: URL.createObjectURL(music.blob) });
         }
     };
 }

@@ -1,9 +1,9 @@
-import { IGithubFile, IMusic, IPureMusic } from './interface';
+import { IMusicFile, IMusic, IPureMusic } from './interface';
 import { MusicIndexDBHelper } from './music_indexdb_helper';
 
-export async function getMusicMetadata(githubFiles: IGithubFile[]): Promise<IMusic[]> {
+export async function getMusicMetadata(files: IMusicFile[]): Promise<IPureMusic[]> {
     const res = await Promise.all(
-        githubFiles.map(async (file) => {
+        files.map(async (file) => {
             try {
                 const filePath = file.download_url;
                 const res = await fetch(filePath);
@@ -15,7 +15,16 @@ export async function getMusicMetadata(githubFiles: IGithubFile[]): Promise<IMus
 
                 const blob = await res.blob();
                 const duration = await getMusicDuration(blob);
-                return { bSuccess: true, data: { name: file.name, url: file.download_url, duration, blob } };
+
+                const arrayBuffer = await blob.arrayBuffer();
+                const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const sha1 = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+                return {
+                    bSuccess: true,
+                    data: { name: file.name.split('.')[0], author: 'unknown', url: file.download_url, duration, blob, sha1 },
+                };
             } catch (error: ANY) {
                 // 处理fetch错误
                 console.error('Fetch error:', error);
@@ -24,7 +33,7 @@ export async function getMusicMetadata(githubFiles: IGithubFile[]): Promise<IMus
             }
         }),
     );
-    return res.filter((item) => item.bSuccess).map((item) => item.data) as IMusic[];
+    return res.filter((item) => item.bSuccess).map((item) => item.data) as IPureMusic[];
 }
 
 export async function getMusicDuration(music: Blob): Promise<string> {

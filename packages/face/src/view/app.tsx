@@ -1,6 +1,7 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import './app.less';
+import * as THREE from 'three';
 import { IMusicStore } from '../store/music_store';
 import { BottomBar } from './bottom_bar';
 import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
@@ -24,7 +25,7 @@ export class App extends React.Component<Partial<IProps>, IState> {
     async componentDidMount() {
         const { initMusicList } = this.props.musicStore!;
         await MusicIndexDBHelper.init();
-        initMusicList();
+        await initMusicList();
     }
 
     public render(): React.ReactElement {
