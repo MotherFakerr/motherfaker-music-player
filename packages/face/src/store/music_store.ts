@@ -139,13 +139,10 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     playAudio(): void {
-        try {
-            if (this.isMusicPrepared()) {
-                this.audioElement.play();
+        if (this.isMusicPrepared()) {
+            this.audioElement.play().then(() => {
                 this.playingStatus = EN_PLAYING_STATUS.PLAYING;
-            }
-        } catch (error) {
-            console.error(error);
+            });
         }
     }
 
