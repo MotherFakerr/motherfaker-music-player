@@ -7,6 +7,7 @@ import { EN_PLAYING_STATUS, IMusicStore } from '../../store/music_store';
 import DEFAULT_ALBUM from '../../assets/img/default_album.jpg';
 import { VolumnController } from './components/volume_controller';
 import { PlayList } from './components/play_list';
+import { PlayListAdder } from './components/play_list_adder';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -77,6 +78,7 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                     <div className='extra-content'>
                         <VolumnController />
                         <PlayList />
+                        <PlayListAdder />
                     </div>
                 </div>
                 <audio

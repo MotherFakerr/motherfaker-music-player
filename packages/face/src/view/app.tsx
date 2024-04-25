@@ -4,6 +4,7 @@ import './app.less';
 import { IMusicStore } from '../store/music_store';
 import { BottomBar } from './bottom_bar';
 import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
+import { Loading } from '../components/loading';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -28,13 +29,19 @@ export class App extends React.Component<Partial<IProps>, IState> {
     }
 
     public render(): React.ReactElement {
-        const { fetchMusicList } = this.props.musicStore!;
+        const { fetchMusicByUrl } = this.props.musicStore!;
 
         return (
             <div className='app'>
-                <BottomBar />
+                <div className='main-component'>
+                    <BottomBar />
+                </div>
+
+                <div className='extra-component'>
+                    <Loading />
+                </div>
                 <input type='text' onChange={(e) => this.setState({ url: e.target.value })} />
-                <button type='button' onClick={() => fetchMusicList(this.state.url)}>
+                <button type='button' onClick={() => fetchMusicByUrl(this.state.url)}>
                     加载
                 </button>
             </div>
