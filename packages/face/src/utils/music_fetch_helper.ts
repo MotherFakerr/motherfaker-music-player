@@ -2,6 +2,8 @@
 import { message } from 'antd';
 import { IMusicFile, IPureMusic } from './interface';
 import { MusicMetadataHelper } from './music_metadata_helper';
+import { LoadingHelper } from './loading_helper';
+import { sleep } from './common_util';
 
 export class MusicFetchHelperImpl {
     fetchMusicByUrl = async (url: string): Promise<IPureMusic[]> => {
@@ -26,6 +28,9 @@ export class MusicFetchHelperImpl {
             const duration = await MusicMetadataHelper.getMusicDuration(blob);
             const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
             res.push({ name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 });
+            LoadingHelper.setLoadingProgress(res.length / files.length);
+            LoadingHelper.setLoadingMessage(file.name);
+            await sleep(0);
         }
         return res;
     };

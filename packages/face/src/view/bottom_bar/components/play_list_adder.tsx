@@ -21,6 +21,8 @@ interface IState {
 @inject('musicStore', 'loadingStore')
 @observer
 export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
+    private _isUploading = false;
+
     constructor(props: IProps) {
         super(props);
         this.state = {
@@ -32,8 +34,6 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
     public render(): React.ReactElement {
         const { uploadLocalMusic } = this.props.musicStore!;
         const { isShow } = this.state;
-        let fileCount = 0;
-        let pendingCount = 0;
         return (
             <div className='play-list-adder'>
                 <span className='icon-button iconfont icon-playlist-plus' aria-hidden onClick={() => this.setState({ isShow: true })} />
@@ -73,24 +73,27 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
                             multiple
                             showUploadList={false}
                             fileList={[]}
-                            customRequest={async (e) => {
-                                if (this._ifCanAddPlayList()) {
-                                    await sleep(500);
-                                    uploadLocalMusic([e.file as File]).finally(async () => {
-                                        pendingCount++;
-                                        LoadingHelper.setLoadingProgress(pendingCount / fileCount);
-                                        LoadingHelper.setLoadingMessage((e.file as File).name);
-                                        await sleep(500);
-                                        if (pendingCount === fileCount) {
-                                            LoadingHelper.setLoading(false);
-                                        }
-                                    });
-                                }
+                            customRequest={() => {
+                                // do nothing
                             }}
-                            onChange={(info) => {
+                            onChange={async (info) => {
+                                if (!this._ifCanAddPlayList()) {
+                                    return;
+                                }
+                                if (this._isUploading) {
+                                    return;
+                                }
+
+                                this._isUploading = true;
                                 LoadingHelper.setLoading(true);
-                                fileCount = info.fileList.length;
-                                pendingCount = 0;
+                                await sleep(0);
+                                uploadLocalMusic(info.fileList.map((file) => file.originFileObj) as File[]).finally(async () => {
+                                    LoadingHelper.setLoading(false);
+
+                                    this._isUploading = false;
+                                });
+                                console.log(info);
+                                // pendingCount = 0;
                             }}>
                             <span className='iconfont icon-music-circle' />
                             <p className='ant-upload-text'>点击或拖动文件到此区域进行上传</p>
