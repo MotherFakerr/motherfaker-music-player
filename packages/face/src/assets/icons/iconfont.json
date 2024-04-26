@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1445111",
+      "name": "plus",
+      "font_class": "plus",
+      "unicode": "e853",
+      "unicode_decimal": 59475
+    },
+    {
+      "icon_id": "1444946",
+      "name": "music-circle",
+      "font_class": "music-circle",
+      "unicode": "e805",
+      "unicode_decimal": 59397
+    },
+    {
+      "icon_id": "1445107",
+      "name": "playlist-plus",
+      "font_class": "playlist-plus",
+      "unicode": "e851",
+      "unicode_decimal": 59473
+    },
+    {
+      "icon_id": "5875526",
+      "name": "delete",
+      "font_class": "delete",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
       "icon_id": "5810218",
       "name": "loading",
       "font_class": "loading",

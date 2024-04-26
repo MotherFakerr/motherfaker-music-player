@@ -1,7 +1,7 @@
 .play-list {
     .ant-popover {
         border-radius: 6px;
-        width: 500px !important;
+        width: 540px !important;
         height: 300px !important;
         position: fixed !important;
         bottom: 54px !important;
@@ -16,22 +16,94 @@
     .play-list-list {
         color: #e2e2e2;
         background-color: #1e2125;
+        .iconfont {
+            color: #9b9b9b;
+            &:hover {
+                color: #e2e2e2
+            }
+        }
+
         .ant-list-header {
             display: flex;
             align-items: center;
             background-color: #1e1e1e;
-            height: 39px;
+            height: 40px;
             padding: 0 26px;
             border-bottom: 1px solid black;
             .title {
                 font-size: 14px;
                 font-weight: 700;
+                display: flex;
+                flex-wrap: nowrap;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                .clear-button {
+                    display: flex;
+                    align-items: center;
+                    font-weight: 500;
+                    .text {
+                        color: #ccc;
+                        font-size: 12px;
+                        margin-left: 6px;
+                    }
+       
+                    &:hover {
+                        cursor: pointer;  
+                        .iconfont {
+                            color: #e2e2e2;
+                        }
+                        .text {
+                            color: #e2e2e2;
+                            text-decoration: underline;
+                        }
+                    }
+                  
+                }
             }
         }
       
         .ant-list-items {
-            height: 300px;
+            font-size: 12px;
+            height: 260px;
             overflow: auto;
+            /* 修改滚动条的轨道 */
+            &::-webkit-scrollbar {
+                width: 6px; /* 设置滚动条的宽度 */
+            }
+
+            /* 修改滚动条的轨道背景 */
+            &::-webkit-scrollbar-track {
+                background: #000;
+            }
+
+            /* 修改滚动条的滑块 */
+            &::-webkit-scrollbar-thumb {
+                background: #868686;
+                border: 1px solid #a6a6a6;
+                border-radius: 4px; /* 设置滑块圆角 */
+                opacity: .8;
+            }
+
+            /* 修改滚动条的滑块悬停状态样式 */
+            &::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            /* 修改滚动条的滑块在拖动时的样式 */
+            &::-webkit-scrollbar-thumb:active {
+                background: #7f7f7f;
+            }
+
+            /* 修改滚动条的轨道两端的按钮样式 */
+            &::-webkit-scrollbar-button {
+                display: none; /* 隐藏滚动条两端的按钮 */
+            }
+
+            /* 修改滚动条的轨道两端的按钮在悬停状态的样式 */
+            &::-webkit-scrollbar-button:hover {
+                display: block; /* 设置悬停时显示 */
+            }
         }
         .list-item {
             height: 28px;
@@ -39,8 +111,15 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            .iconfont {
+                font-size: 17px;
+                visibility: hidden;
+            }
             &:hover {
                 background-color: #111316;
+                .iconfont {
+                    visibility: visible;
+                }
             }
             div {
                 text-overflow: ellipsis;
@@ -53,15 +132,19 @@
                     .iconfont {
                         font-size: 22px;
                         color: #b60a0a;
+                        visibility: visible;
                     }
                 }
                 &:nth-child(2) {
                     flex: 1;
                 }
                 &:nth-child(3) {
-                    width: 80px;
+                    width: 88px;
                 }
                 &:nth-child(4) {
+                    width: 80px;
+                }
+                &:nth-child(5) {
                     width: 45px;
                 }
             }

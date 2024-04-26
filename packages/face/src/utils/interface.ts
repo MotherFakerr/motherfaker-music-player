@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-export interface IGithubFile {
+export interface IMusicFile {
     name: string;
-    type: string;
-    size: number;
-    sha: string;
-    url: string;
-    git_url: string;
-    html_url: string;
     download_url: string;
 }
 
@@ -22,4 +16,5 @@ export interface IPureMusic {
     artist?: string;
     thumbUrl?: string;
     blob: Blob;
+    sha1: string;
 }
