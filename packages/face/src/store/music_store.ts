@@ -126,7 +126,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
 
     setAudioProgress(progress: number): void {
         const time = (progress / 100) * this.audioElement.duration;
-        if (time) {
+        if (time !== undefined) {
             this.audioElement.currentTime = (progress / 100) * this.audioElement.duration;
         }
     }
