@@ -63,6 +63,9 @@ class MusicMetadataHelperImpl {
             audio.addEventListener('loadedmetadata', () => {
                 resolve(this.formatTime(audio.duration));
             });
+            audio.addEventListener('error', () => {
+                resolve('00:00');
+            });
         });
     }
 

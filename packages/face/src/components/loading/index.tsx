@@ -16,8 +16,8 @@ export class Loading extends React.Component<Partial<IProps>> {
     }
 
     public render(): React.ReactElement {
-        const { isLoading, message, progress, setLoading } = this.props.loadingStore!;
-
+        const { isLoading, message, progress } = this.props.loadingStore!;
+        console.log('progress: ', Number((progress * 100).toFixed(2)));
         return (
             <>
                 {isLoading && (

@@ -3,7 +3,7 @@
         "noEmit": true,
         "module": "esnext",
         "target": "es6",
-        "lib": ["ES2019","dom"],
+        "lib": ["ES2020","dom"],
         "sourceMap": true,
         "jsx": "react",
         "moduleResolution": "node",

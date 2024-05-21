@@ -4,6 +4,7 @@ import { IMusicFile, IPureMusic } from './interface';
 import { MusicMetadataHelper } from './music_metadata_helper';
 import { LoadingHelper } from './loading_helper';
 import { sleep } from './common_util';
+import { EN_TASK_STATUS, Task } from '../../../core/src';
 
 export class MusicFetchHelperImpl {
     fetchMusicByUrl = async (url: string): Promise<IPureMusic[]> => {
@@ -19,19 +20,107 @@ export class MusicFetchHelperImpl {
     };
 
     uploadLocalMusic = async (files: File[]): Promise<IPureMusic[]> => {
+        // await sleep(1000);
+
+        const runTask = (file: File) => {
+            return new Promise<IPureMusic>((resolve, reject) => {
+                let blob: Blob;
+                let audio: HTMLAudioElement;
+                const task = new Task<IPureMusic>({
+                    onPending: async (task) => {
+                        if (!MusicMetadataHelper.checkMusicType(file.name.split('.').pop() ?? '')) {
+                            reject(new Error('music type not support'));
+                            return;
+                        }
+
+                        blob = new Blob([file], { type: file.type });
+                        audio = new Audio(URL.createObjectURL(blob));
+
+                        audio.addEventListener('error', () => {
+                            reject(new Error('music load error'));
+                        });
+
+                        audio.addEventListener('loadedmetadata', () => {
+                            task.setStatus(EN_TASK_STATUS.RUNNING);
+                        });
+                    },
+                    onRunning: async (task) => {
+                        const duration = await MusicMetadataHelper.getMusicDuration(blob);
+                        const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
+                        const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
+                        task.setUserData(pureMusic);
+                        task.setStatus(EN_TASK_STATUS.SUCCESS);
+                    },
+                    onSuccess: async (task) => {
+                        console.log('2');
+
+                        resolve(task.getUserData());
+                    },
+                    onFailed: async (task) => {
+                        reject(new Error('music load failed'));
+                    },
+                });
+            });
+        };
+
+        const normalizeProgress = 1 / files.length;
+        let curProgress = 0;
         const res = [];
         for (const file of files) {
-            if (!MusicMetadataHelper.checkMusicType(file.name.split('.').pop() ?? '')) {
-                continue;
+            try {
+                // const taskRes = await runTask(file);
+                let blob: Blob;
+                let audio: HTMLAudioElement;
+                const task = new Task<IPureMusic, IPureMusic>({
+                    onPending: async (task) => {
+                        if (!MusicMetadataHelper.checkMusicType(file.name.split('.').pop() ?? '')) {
+                            task.setStatus(EN_TASK_STATUS.FAILED);
+                            return;
+                        }
+
+                        blob = new Blob([file], { type: file.type });
+                        audio = new Audio(URL.createObjectURL(blob));
+
+                        audio.addEventListener('error', () => {
+                            task.setStatus(EN_TASK_STATUS.FAILED);
+                        });
+
+                        audio.addEventListener('loadedmetadata', () => {
+                            task.setStatus(EN_TASK_STATUS.RUNNING);
+                        });
+                    },
+                    onRunning: async (task) => {
+                        const duration = await MusicMetadataHelper.getMusicDuration(blob);
+                        const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
+                        const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
+                        task.setUserData(pureMusic);
+                        task.setResponse(pureMusic);
+                        task.setStatus(EN_TASK_STATUS.SUCCESS);
+                    },
+                    onSuccess: async (task) => {
+                        console.log('2');
+
+                        // resolve(task.getUserData());
+                    },
+                    onFailed: async (task) => {
+                        // reject(new Error('music load failed'));
+                    },
+                });
+
+                const taskRes = await task.start();
+
+                res.push(taskRes);
+            } catch {
+                // DO NOTHING
+            } finally {
+                LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));
+                LoadingHelper.setLoadingMessage(file.name);
+                await sleep(0);
             }
-            const blob = new Blob([file], { type: file.type });
-            const duration = await MusicMetadataHelper.getMusicDuration(blob);
-            const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
-            res.push({ name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 });
-            LoadingHelper.setLoadingProgress(res.length / files.length);
-            LoadingHelper.setLoadingMessage(file.name);
-            await sleep(0);
         }
+
+        console.log('finish');
+
         return res;
     };
 
