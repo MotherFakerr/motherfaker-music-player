@@ -15,24 +15,28 @@ export enum EN_TASK_QUEUE_TYPE {
     ALLSETTLED_PARALLEL,
 }
 
-export interface ITaskParams<T extends KV = KV> {
-    userData?: T;
+export interface ITaskParams<R extends ANY = ANY> {
     // 不设置onCreated是为了防止taskQueue刚创建就把task执行了
-    onPending?: (task: ITask<T>) => Promise<void>;
-    onRunning?: (task: ITask<T>) => Promise<void>;
-    onSuccess?: (task: ITask<T>) => Promise<void>;
-    onFailed?: (task: ITask<T>) => Promise<void>;
+    onPending?: (task: ITask<R>) => Promise<void>;
+    onRunning?: (task: ITask<R>) => Promise<void>;
+    onSuccess?: (task: ITask<R>, res: R) => Promise<void>;
+    onFailed?: (task: ITask<R>, errors: ITaskError[]) => Promise<void>;
 }
 
-export interface ITask<T extends KV = KV, R extends ANY = ANY> {
+export interface ITask<R extends ANY = ANY> {
     start(): void;
-    getUserData(): T;
-    setUserData(data: T): void;
-    setResponse(response: R): void;
     setStatus(status: EN_TASK_STATUS): void;
     getStatus(): EN_TASK_STATUS;
+    getErrors(): ITaskError[];
+    markFailed(error: Error): void;
+    markSuccess(res: R): void;
 }
 
 export interface ITaskQueue {
     addTask(task: ITask): void;
+}
+
+export interface ITaskError {
+    msg: string;
+    stack?: string;
 }

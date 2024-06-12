@@ -1,17 +1,15 @@
-import { EN_TASK_STATUS, ITask, ITaskParams } from './interface';
+import { EN_TASK_STATUS, ITask, ITaskError, ITaskParams } from './interface';
 
-export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
+export class Task<R extends ANY = ANY> implements ITask<R> {
     private _status: EN_TASK_STATUS = EN_TASK_STATUS.CREATED;
 
     private _onPending?: (task: this) => Promise<void>;
 
     private _onRunning?: (task: this) => Promise<void>;
 
-    private _onSuccess?: (task: this) => Promise<void>;
+    private _onSuccess?: (task: this, res: R) => Promise<void>;
 
-    private _onFailed?: (task: this) => Promise<void>;
-
-    private _userData: T;
+    private _onFailed?: (task: this, errors: ITaskError[]) => Promise<void>;
 
     private _response: R;
 
@@ -21,12 +19,13 @@ export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
 
     private _reject: (reason: ANY) => void;
 
-    constructor(params: ITaskParams<T>) {
+    private _errors: ITaskError[] = [];
+
+    constructor(params: ITaskParams<R>) {
         this._onPending = params.onPending;
         this._onRunning = params.onRunning;
         this._onSuccess = params.onSuccess;
         this._onFailed = params.onFailed;
-        this._userData = params.userData ?? ({} as T);
         this._promise = new Promise((resolve, reject) => {
             this._resolve = resolve;
             this._reject = reject;
@@ -37,18 +36,6 @@ export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
         this.setStatus(EN_TASK_STATUS.PENDING);
 
         return this._promise;
-    }
-
-    public getUserData(): T {
-        return this._userData;
-    }
-
-    public setUserData(data: T): void {
-        this._userData = data;
-    }
-
-    public setResponse(response: R): void {
-        this._response = response;
     }
 
     public getStatus(): EN_TASK_STATUS {
@@ -68,13 +55,28 @@ export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
 
         this._executeCallback(status).catch((e) => {
             console.error('Error executing callback for status:', status, 'Error:', e);
-
+            this._errors.push({ msg: e.message, stack: e.stack });
             this._status = EN_TASK_STATUS.FAILED;
 
-            this._executeFailedCallback().catch((e) => {
+            this._executeFailedCallback().catch((e: Error) => {
                 console.error('Error executing failed callback. Error:', e);
+                this._errors.push({ msg: e.message, stack: e.stack });
             });
         });
+    }
+
+    public getErrors(): ITaskError[] {
+        return this._errors;
+    }
+
+    public markFailed(error: Error): void {
+        this._errors.push({ msg: error.message, stack: error.stack });
+        this.setStatus(EN_TASK_STATUS.FAILED);
+    }
+
+    public markSuccess(res: R): void {
+        this._response = res;
+        this.setStatus(EN_TASK_STATUS.SUCCESS);
     }
 
     private async _executeCallback(status: EN_TASK_STATUS): Promise<void> {
@@ -86,7 +88,7 @@ export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
                 await (this._onRunning ? this._onRunning(this) : this.setStatus(EN_TASK_STATUS.SUCCESS));
                 break;
             case EN_TASK_STATUS.SUCCESS:
-                await this._onSuccess?.(this);
+                await this._onSuccess?.(this, this._response);
                 this._resolve(this._response);
                 break;
             case EN_TASK_STATUS.FAILED:
@@ -99,7 +101,7 @@ export class Task<T extends KV = KV, R extends ANY = ANY> implements ITask<T> {
 
     private async _executeFailedCallback(): Promise<void> {
         if (this._onFailed) {
-            await this._onFailed(this);
+            await this._onFailed(this, this._errors);
         }
         this._reject('');
     }

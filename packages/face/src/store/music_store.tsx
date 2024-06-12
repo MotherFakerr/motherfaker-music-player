@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { action, computed, makeObservable, observable } from 'mobx';
 import { message } from 'antd';
+import React from 'react';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
 import { IMusic, IPureMusic } from '../utils/interface';
@@ -114,8 +115,9 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     async uploadLocalMusic(files: File[]): Promise<void> {
-        const pureMusics = await MusicFetchHelper.uploadLocalMusic(files);
-        this._postFetchMusic(pureMusics);
+        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.uploadLocalMusic(files);
+        const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
+        this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
     }
 
     setCurMusicIndex(index: number): void {
@@ -205,7 +207,8 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         this.audioElement.load();
     }
 
-    private _postFetchMusic = async (pureMusics: IPureMusic[]): Promise<void> => {
+    private _postFetchMusic = async (pureMusics: IPureMusic[]): Promise<{ errorMsgs: string[] }> => {
+        const errorMsgs = [];
         const newPureMusics = [];
         const musicHashSet = new Set<string>([...this._musicHashSet]);
         for (const music of pureMusics) {
@@ -213,7 +216,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
                 newPureMusics.push(music);
                 musicHashSet.add(music.sha1);
             } else {
-                message.warning(`${music.name}已存在，跳过加载`);
+                errorMsgs.push(`文件已存在，跳过加载，错误文件：${music.name}`);
             }
         }
 
@@ -223,5 +226,22 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             this._musicHashSet.add(music.sha1);
             this.musicList.push({ ...music, blobUrl: URL.createObjectURL(music.blob) });
         }
+
+        return { errorMsgs };
     };
+
+    private _displayErrorMsgs(errorMsgs: string[]): void {
+        if (errorMsgs.length) {
+            message.error({
+                content: (
+                    <ul>
+                        {errorMsgs.map((msg) => (
+                            <li>{msg}</li>
+                        ))}
+                    </ul>
+                ),
+                duration: 5,
+            });
+        }
+    }
 }

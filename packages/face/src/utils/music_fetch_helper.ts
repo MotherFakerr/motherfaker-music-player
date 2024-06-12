@@ -4,7 +4,7 @@ import { IMusicFile, IPureMusic } from './interface';
 import { MusicMetadataHelper } from './music_metadata_helper';
 import { LoadingHelper } from './loading_helper';
 import { sleep } from './common_util';
-import { EN_TASK_STATUS, Task } from '../../../core/src';
+import { EN_TASK_STATUS, ITaskError, Task } from '../../../core/src';
 
 export class MusicFetchHelperImpl {
     fetchMusicByUrl = async (url: string): Promise<IPureMusic[]> => {
@@ -19,109 +19,61 @@ export class MusicFetchHelperImpl {
         return res;
     };
 
-    uploadLocalMusic = async (files: File[]): Promise<IPureMusic[]> => {
-        // await sleep(1000);
-
-        const runTask = (file: File) => {
-            return new Promise<IPureMusic>((resolve, reject) => {
-                let blob: Blob;
-                let audio: HTMLAudioElement;
-                const task = new Task<IPureMusic>({
-                    onPending: async (task) => {
-                        if (!MusicMetadataHelper.checkMusicType(file.name.split('.').pop() ?? '')) {
-                            reject(new Error('music type not support'));
-                            return;
-                        }
-
-                        blob = new Blob([file], { type: file.type });
-                        audio = new Audio(URL.createObjectURL(blob));
-
-                        audio.addEventListener('error', () => {
-                            reject(new Error('music load error'));
-                        });
-
-                        audio.addEventListener('loadedmetadata', () => {
-                            task.setStatus(EN_TASK_STATUS.RUNNING);
-                        });
-                    },
-                    onRunning: async (task) => {
-                        const duration = await MusicMetadataHelper.getMusicDuration(blob);
-                        const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
-                        const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
-                        task.setUserData(pureMusic);
-                        task.setStatus(EN_TASK_STATUS.SUCCESS);
-                    },
-                    onSuccess: async (task) => {
-                        console.log('2');
-
-                        resolve(task.getUserData());
-                    },
-                    onFailed: async (task) => {
-                        reject(new Error('music load failed'));
-                    },
-                });
-            });
-        };
-
+    uploadLocalMusic = async (files: File[]): Promise<{ musics: IPureMusic[]; errorMsgs: string[] }> => {
         const normalizeProgress = 1 / files.length;
         let curProgress = 0;
-        const res = [];
+        const musics: IPureMusic[] = [];
+        const errorMsgs: string[] = [];
         for (const file of files) {
+            let blob: Blob;
+            let audio: HTMLAudioElement;
+            const task = new Task<IPureMusic>({
+                onPending: async (task) => {
+                    const musicType = file.name.split('.').pop() ?? '';
+                    if (!MusicMetadataHelper.checkMusicType(musicType)) {
+                        task.markFailed(new Error(`${musicType}格式不支持，错误文件：${file.name}`));
+                        return;
+                    }
+
+                    blob = new Blob([file], { type: file.type });
+                    audio = new Audio(URL.createObjectURL(blob));
+
+                    audio.addEventListener('error', () => {
+                        task.markFailed(new Error(`文件加载失败，错误文件：${file.name}`));
+                    });
+
+                    audio.addEventListener('loadedmetadata', () => {
+                        task.setStatus(EN_TASK_STATUS.RUNNING);
+                    });
+                },
+                onRunning: async (task) => {
+                    const duration = await MusicMetadataHelper.getMusicDuration(blob);
+                    const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
+                    const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
+                    task.markSuccess(pureMusic);
+                    task.setStatus(EN_TASK_STATUS.SUCCESS);
+                },
+                onSuccess: async (_, res: IPureMusic) => {
+                    musics.push(res);
+                },
+                onFailed: async (_, errros: ITaskError[]) => {
+                    errorMsgs.push(...errros.map((error: ITaskError) => error.msg));
+                },
+            });
             try {
-                // const taskRes = await runTask(file);
-                let blob: Blob;
-                let audio: HTMLAudioElement;
-                const task = new Task<IPureMusic, IPureMusic>({
-                    onPending: async (task) => {
-                        if (!MusicMetadataHelper.checkMusicType(file.name.split('.').pop() ?? '')) {
-                            task.setStatus(EN_TASK_STATUS.FAILED);
-                            return;
-                        }
-
-                        blob = new Blob([file], { type: file.type });
-                        audio = new Audio(URL.createObjectURL(blob));
-
-                        audio.addEventListener('error', () => {
-                            task.setStatus(EN_TASK_STATUS.FAILED);
-                        });
-
-                        audio.addEventListener('loadedmetadata', () => {
-                            task.setStatus(EN_TASK_STATUS.RUNNING);
-                        });
-                    },
-                    onRunning: async (task) => {
-                        const duration = await MusicMetadataHelper.getMusicDuration(blob);
-                        const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
-                        const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
-                        task.setUserData(pureMusic);
-                        task.setResponse(pureMusic);
-                        task.setStatus(EN_TASK_STATUS.SUCCESS);
-                    },
-                    onSuccess: async (task) => {
-                        console.log('2');
-
-                        // resolve(task.getUserData());
-                    },
-                    onFailed: async (task) => {
-                        // reject(new Error('music load failed'));
-                    },
-                });
-
-                const taskRes = await task.start();
-
-                res.push(taskRes);
+                await task.start();
             } catch {
-                // DO NOTHING
+                // ignore
             } finally {
                 LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));
                 LoadingHelper.setLoadingMessage(file.name);
                 await sleep(0);
             }
         }
-
-        console.log('finish');
-
-        return res;
+        return {
+            musics,
+            errorMsgs,
+        };
     };
 
     private _fetchGithubMusicList = async (url: string): Promise<IPureMusic[]> => {
