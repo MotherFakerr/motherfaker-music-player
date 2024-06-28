@@ -1,2 +1,3 @@
 export * from './task';
-export * from './interface';
+export * from './i_task';
+export * from './i_task_queue';

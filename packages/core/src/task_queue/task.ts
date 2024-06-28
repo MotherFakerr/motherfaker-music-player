@@ -1,4 +1,4 @@
-import { EN_TASK_STATUS, ITask, ITaskError, ITaskParams } from './interface';
+import { EN_TASK_STATUS, ITask, ITaskError, ITaskParams } from './i_task';
 
 export class Task<R extends ANY = ANY> implements ITask<R> {
     private _status: EN_TASK_STATUS = EN_TASK_STATUS.CREATED;

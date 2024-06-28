@@ -4,9 +4,8 @@ import { IMusicFile, IPureMusic } from './interface';
 import { MusicMetadataHelper } from './music_metadata_helper';
 import { LoadingHelper } from './loading_helper';
 import { sleep } from './common_util';
-import { EN_TASK_QUEUE_TYPE, EN_TASK_STATUS, ITaskError, Task } from '../../../core/src';
 import { TaskQueue } from '../../../core/src/task_queue/task_queue';
-
+import { EN_TASK_QUEUE_TYPE, EN_TASK_STATUS, ITaskError, Task } from '@github-music-player/core';
 export class MusicFetchHelperImpl {
     fetchMusicByUrl = async (url: string): Promise<IPureMusic[]> => {
         const matchRes = url.match(/^https:\/\/github\.com/);
@@ -75,7 +74,7 @@ export class MusicFetchHelperImpl {
                 return task;
             }),
         );
-        await taskQueue.start(EN_TASK_QUEUE_TYPE.ALLSETTLED_SERIAL);
+        await taskQueue.start();
 
         return {
             musics,
