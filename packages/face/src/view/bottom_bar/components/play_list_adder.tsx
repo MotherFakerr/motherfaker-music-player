@@ -5,7 +5,7 @@ import { Divider, Input, Modal, Upload, message } from 'antd';
 import { IMusicStore } from '../../../store/music_store';
 import { ILoadingStore } from '../../../store/loading_store';
 import { LoadingHelper } from '../../../utils/loading_helper';
-import { MusicIndexDBHelper } from '../../../utils/music_indexdb_helper';
+import { MusicIndexDBHelper } from '../../../utils/indexdb_utils/music_indexdb_helper';
 import { sleep } from '../../../utils/common_util';
 
 interface IProps {
@@ -85,10 +85,9 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
                                 }
 
                                 this._isUploading = true;
-                                LoadingHelper.setLoading(true);
-                                await sleep(0);
+                                await LoadingHelper.setLoading(true);
                                 uploadLocalMusic(info.fileList.map((file) => file.originFileObj) as File[]).finally(async () => {
-                                    LoadingHelper.setLoading(false);
+                                    await LoadingHelper.setLoading(false);
 
                                     this._isUploading = false;
                                 });
@@ -114,12 +113,12 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
     }
 
     private _fetchMusicByUrl = async (url: string) => {
-        LoadingHelper.setLoading(true);
-        LoadingHelper.setLoadingMessage('正在拉取音乐中');
-        await sleep(500);
+        await LoadingHelper.setLoading(true);
+        await LoadingHelper.setLoadingMessage('正在拉取音乐中');
+
         const { fetchMusicByUrl } = this.props.musicStore!;
         await fetchMusicByUrl(url);
-        LoadingHelper.setLoading(false);
+        await LoadingHelper.setLoading(false);
         this.setState({ inputUrl: '' });
     };
 }

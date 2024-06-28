@@ -3,7 +3,7 @@ import { inject, observer } from 'mobx-react';
 import './app.less';
 import { IMusicStore } from '../store/music_store';
 import { BottomBar } from './bottom_bar';
-import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
+import { MusicIndexDBHelper } from '../utils/indexdb_utils/music_indexdb_helper';
 import { Loading } from '../components/loading';
 
 interface IProps {

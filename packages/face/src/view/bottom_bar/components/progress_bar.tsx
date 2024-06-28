@@ -3,7 +3,7 @@ import './progress_bar.less';
 import { inject, observer } from 'mobx-react';
 import { IMusicStore } from '../../../store/music_store';
 import { MySlider } from '../../../components/slider';
-import { MusicMetadataHelper } from '../../../utils/music_metadata_helper';
+import { TimeFormatter } from '@github-music-player/core';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -35,8 +35,8 @@ export class ProgressBar extends React.Component<Partial<IProps>> {
                     }}
                 />
                 <div className='time'>
-                    <span>{`${MusicMetadataHelper.formatTime(audioElement.currentTime || 0)}`}</span>
-                    {` / ${MusicMetadataHelper.formatTime(audioElement.duration || 0)}`}
+                    <span>{`${TimeFormatter.format(audioElement.currentTime || 0)}`}</span>
+                    {` / ${TimeFormatter.format(audioElement.duration || 0)}`}
                 </div>
             </div>
         );

@@ -6,8 +6,9 @@ import React from 'react';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
 import { IMusic, IPureMusic } from '../utils/interface';
-import { MusicIndexDBHelper } from '../utils/music_indexdb_helper';
-import { MusicFetchHelper } from '../utils/music_fetch_helper';
+import { MusicIndexDBHelper } from '../utils/indexdb_utils/music_indexdb_helper';
+import { MusicFetchHelper } from '../utils/music_load_utils.ts/music_fetch_helper';
+import { MusicElement } from '@github-music-player/element';
 
 export enum EN_PLAYING_STATUS {
     PLAYING = 'playing',
@@ -110,8 +111,9 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     async fetchMusicByUrl(url: string): Promise<void> {
-        const pureMusics = await MusicFetchHelper.fetchMusicByUrl(url);
-        this._postFetchMusic(pureMusics);
+        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.fetchMusicByUrl(url);
+        const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
+        this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
     }
 
     async uploadLocalMusic(files: File[]): Promise<void> {
@@ -207,20 +209,20 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         this.audioElement.load();
     }
 
-    private _postFetchMusic = async (pureMusics: IPureMusic[]): Promise<{ errorMsgs: string[] }> => {
+    private _postFetchMusic = async (musics: MusicElement[]): Promise<{ errorMsgs: string[] }> => {
         const errorMsgs = [];
-        const newPureMusics = [];
+        const musicEntities = [];
         const musicHashSet = new Set<string>([...this._musicHashSet]);
-        for (const music of pureMusics) {
+        for (const music of musics) {
             if (!musicHashSet.has(music.sha1)) {
-                newPureMusics.push(music);
+                musicEntities.push(music.dump());
                 musicHashSet.add(music.sha1);
             } else {
                 errorMsgs.push(`文件已存在，跳过加载，错误文件：${music.name}`);
             }
         }
 
-        const newMusics = await MusicIndexDBHelper.addMusics(newPureMusics);
+        const newMusics = await MusicIndexDBHelper.addMusics(musicEntities);
 
         for (const music of newMusics) {
             this._musicHashSet.add(music.sha1);
