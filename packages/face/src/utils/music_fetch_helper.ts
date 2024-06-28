@@ -4,7 +4,8 @@ import { IMusicFile, IPureMusic } from './interface';
 import { MusicMetadataHelper } from './music_metadata_helper';
 import { LoadingHelper } from './loading_helper';
 import { sleep } from './common_util';
-import { EN_TASK_STATUS, ITaskError, Task } from '../../../core/src';
+import { EN_TASK_QUEUE_TYPE, EN_TASK_STATUS, ITaskError, Task } from '../../../core/src';
+import { TaskQueue } from '../../../core/src/task_queue/task_queue';
 
 export class MusicFetchHelperImpl {
     fetchMusicByUrl = async (url: string): Promise<IPureMusic[]> => {
@@ -24,52 +25,58 @@ export class MusicFetchHelperImpl {
         let curProgress = 0;
         const musics: IPureMusic[] = [];
         const errorMsgs: string[] = [];
-        for (const file of files) {
-            let blob: Blob;
-            let audio: HTMLAudioElement;
-            const task = new Task<IPureMusic>({
-                onPending: async (task) => {
-                    const musicType = file.name.split('.').pop() ?? '';
-                    if (!MusicMetadataHelper.checkMusicType(musicType)) {
-                        task.markFailed(new Error(`${musicType}格式不支持，错误文件：${file.name}`));
-                        return;
-                    }
 
-                    blob = new Blob([file], { type: file.type });
-                    audio = new Audio(URL.createObjectURL(blob));
+        const updateProgress = async (fileName: string) => {
+            LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));
+            LoadingHelper.setLoadingMessage(fileName);
+            await sleep(0);
+        };
 
-                    audio.addEventListener('error', () => {
-                        task.markFailed(new Error(`文件加载失败，错误文件：${file.name}`));
-                    });
+        const taskQueue = new TaskQueue(
+            files.map((file) => {
+                let blob: Blob;
+                let audio: HTMLAudioElement;
+                const task = new Task<IPureMusic>({
+                    onPending: async (task) => {
+                        const musicType = file.name.split('.').pop() ?? '';
+                        if (!MusicMetadataHelper.checkMusicType(musicType)) {
+                            task.markFailed(new Error(`${musicType}格式不支持，错误文件：${file.name}`));
+                            return;
+                        }
 
-                    audio.addEventListener('loadedmetadata', () => {
-                        task.setStatus(EN_TASK_STATUS.RUNNING);
-                    });
-                },
-                onRunning: async (task) => {
-                    const duration = await MusicMetadataHelper.getMusicDuration(blob);
-                    const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
-                    const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
-                    task.markSuccess(pureMusic);
-                    task.setStatus(EN_TASK_STATUS.SUCCESS);
-                },
-                onSuccess: async (_, res: IPureMusic) => {
-                    musics.push(res);
-                },
-                onFailed: async (_, errros: ITaskError[]) => {
-                    errorMsgs.push(...errros.map((error: ITaskError) => error.msg));
-                },
-            });
-            try {
-                await task.start();
-            } catch {
-                // ignore
-            } finally {
-                LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));
-                LoadingHelper.setLoadingMessage(file.name);
-                await sleep(0);
-            }
-        }
+                        blob = new Blob([file], { type: file.type });
+                        audio = new Audio(URL.createObjectURL(blob));
+
+                        audio.addEventListener('error', () => {
+                            task.markFailed(new Error(`文件加载失败，错误文件：${file.name}`));
+                        });
+
+                        audio.addEventListener('loadedmetadata', () => {
+                            task.setStatus(EN_TASK_STATUS.RUNNING);
+                        });
+                    },
+                    onRunning: async (task) => {
+                        const duration = await MusicMetadataHelper.getMusicDuration(blob);
+                        const sha1 = await MusicMetadataHelper.getMusicSha1(blob);
+                        const pureMusic = { name: file.name.split('.')[0], author: 'unknown', url: '', duration, blob, sha1 };
+                        task.markSuccess(pureMusic);
+                        task.setStatus(EN_TASK_STATUS.SUCCESS);
+                    },
+                    onSuccess: async (_, res: IPureMusic) => {
+                        musics.push(res);
+                        await updateProgress(file.name);
+                    },
+                    onFailed: async (_, errros: ITaskError[]) => {
+                        errorMsgs.push(...errros.map((error: ITaskError) => error.msg));
+                        await updateProgress(file.name);
+                    },
+                });
+
+                return task;
+            }),
+        );
+        await taskQueue.start(EN_TASK_QUEUE_TYPE.ALLSETTLED_SERIAL);
+
         return {
             musics,
             errorMsgs,

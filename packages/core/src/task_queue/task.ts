@@ -103,6 +103,6 @@ export class Task<R extends ANY = ANY> implements ITask<R> {
         if (this._onFailed) {
             await this._onFailed(this, this._errors);
         }
-        this._reject('');
+        this._reject(this._errors);
     }
 }
