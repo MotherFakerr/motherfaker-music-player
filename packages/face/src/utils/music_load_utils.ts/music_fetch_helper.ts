@@ -6,7 +6,7 @@ import { EN_MUSIC_LOAD_STATUS, IMusicUploadParams, MusicUploadElement } from '@g
 
 export class MusicFetchHelperImpl {
     checkMusicFormat(type: string): boolean {
-        const types = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac', 'ape'];
+        const types = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'];
         return types.includes(type);
     }
 
@@ -48,7 +48,6 @@ export class MusicFetchHelperImpl {
                         const blob = new Blob([file], { type: file.type });
                         const music = await new MusicUploadElement().init({
                             name,
-                            artist: 'unknown',
                             blob,
                         });
                         const uploadParams = music.dump();
@@ -171,7 +170,6 @@ export class MusicFetchHelperImpl {
                         const blob = await res.blob();
                         const music = await new MusicUploadElement().init({
                             name: file.name.split('.')[0],
-                            artist: 'unknown',
                             url: file.download_url,
                             blob,
                         });

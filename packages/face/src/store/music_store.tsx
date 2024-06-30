@@ -63,12 +63,14 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.fetchMusicByUrl(url);
         const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
         this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
+        this.player.playMusic(this.player.playingMusic);
     }
 
     async uploadLocalMusic(files: File[]): Promise<void> {
         const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.uploadLocalMusic(files);
         const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
         this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
+        this.player.playMusic(this.player.playingMusic);
     }
 
     async deleteMusic(id: number): Promise<void> {

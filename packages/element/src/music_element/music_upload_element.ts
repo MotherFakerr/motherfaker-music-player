@@ -10,8 +10,6 @@ export class MusicUploadElement {
 
     private _url?: string;
 
-    private _blobUrl: string;
-
     private _duration: number;
 
     private _name: string;
@@ -33,12 +31,13 @@ export class MusicUploadElement {
 
         this._picBlob = picBlob;
         this._blob = blob;
+        const blobUrl = URL.createObjectURL(blob);
 
         this._url = url;
 
         return new Promise(async (resolve) => {
-            const audio = new Audio(this._blobUrl);
-            audio.onloadedmetadata = async () => {
+            const audio = new Audio(blobUrl);
+            audio.onloadeddata = async () => {
                 this._duration = audio.duration;
                 this._sha1 = await Sha1Generator.blob2Sha1(this._blob);
 
@@ -47,14 +46,14 @@ export class MusicUploadElement {
                 if (pic) {
                     this._picBlob = new Blob([pic.data], { type: pic.format });
                 }
-                this._artist = artist || metadata.common.artist;
+                this._artist = artist || metadata.common.artist || 'Unknown';
 
                 this._status = EN_MUSIC_LOAD_STATUS.SUCCESS;
                 resolve(this);
             };
             audio.onerror = () => {
                 this._status = EN_MUSIC_LOAD_STATUS.ERROR;
-                URL.revokeObjectURL(this._blobUrl);
+                URL.revokeObjectURL(blobUrl);
                 resolve(this);
             };
         });
