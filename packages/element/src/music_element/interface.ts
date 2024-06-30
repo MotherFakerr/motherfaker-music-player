@@ -8,11 +8,12 @@ export interface IMusicElement {
     status: EN_MUSIC_LOAD_STATUS;
     name: string;
     format: string;
-    url: string | undefined;
+    url?: string;
     blobUrl: string;
     duration: number;
-    artist: string | undefined;
-    thumbUrl: string | undefined;
+    artist?: string;
+    picBlob?: Blob;
+    picBlobUrl?: string;
     sha1: string;
 }
 
@@ -30,6 +31,6 @@ export interface IMusicUploadRawParams {
     name: string;
     url?: string;
     artist?: string;
-    thumbUrl?: string;
+    picBlob?: Blob;
     blob: Blob;
 }

@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { action, makeAutoObservable, makeObservable, observable } from 'mobx';
+import { action, makeAutoObservable, makeObservable } from 'mobx';
 import { message } from 'antd';
 import React from 'react';
 import { AbstractStore } from './abstract_store';

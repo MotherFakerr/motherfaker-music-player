@@ -53,8 +53,8 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                             <span className='iconfont icon-step-forward' />
                         </Button>
                     </div>
-                    <div className='audio-thumb'>
-                        <img src={playingMusic?.thumbUrl ?? DEFAULT_ALBUM} alt='' />
+                    <div className='audio-pic'>
+                        <img src={playingMusic?.picBlobUrl ?? DEFAULT_ALBUM} alt='' />
                         <div className='mask' />
                     </div>
                     <div className='main-content'>

@@ -6,7 +6,7 @@ import { EN_MUSIC_LOAD_STATUS, IMusicUploadParams, MusicUploadElement } from '@g
 
 export class MusicFetchHelperImpl {
     checkMusicFormat(type: string): boolean {
-        const types = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'];
+        const types = ['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac', 'ape'];
         return types.includes(type);
     }
 

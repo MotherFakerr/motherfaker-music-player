@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const fs = require('fs');
+const webpack = require('webpack');
 const { resolve } = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -69,6 +70,10 @@ module.exports = {
             filename: 'index.html',
             template: resolve(__dirname, './index.html'),
             favicon: resolve(__dirname, './favicon.ico'),
+        }),
+        new webpack.ProvidePlugin({
+            process: 'process/browser.js',
+            Buffer: ['buffer', 'Buffer'],
         }),
     ],
     resolve: {

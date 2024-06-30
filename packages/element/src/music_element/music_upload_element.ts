@@ -1,6 +1,7 @@
 import { Sha1Generator } from '@github-music-player/core';
 import { IMusicUploadParams, IMusicUploadRawParams } from './interface';
 import { EN_MUSIC_LOAD_STATUS } from './music_element';
+import * as musicMetadata from 'music-metadata-browser';
 
 export class MusicUploadElement {
     private _status: EN_MUSIC_LOAD_STATUS;
@@ -19,30 +20,35 @@ export class MusicUploadElement {
 
     private _artist?: string;
 
-    private _thumbUrl?: string;
+    private _picBlob?: Blob;
 
     private _sha1: string;
 
     init(params: IMusicUploadRawParams): Promise<this> {
-        const { name, blob, url, artist, thumbUrl } = params;
+        const { name, blob, url, artist, picBlob } = params;
 
         const nameArr = name.split('.');
         this._format = nameArr[nameArr.length - 1];
         this._name = nameArr[0];
 
-        this._artist = artist;
-        this._thumbUrl = thumbUrl;
-        if (blob) {
-            this._blob = blob;
-            this._blobUrl = URL.createObjectURL(blob);
-        }
+        this._picBlob = picBlob;
+        this._blob = blob;
+
         this._url = url;
 
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
             const audio = new Audio(this._blobUrl);
             audio.onloadedmetadata = async () => {
                 this._duration = audio.duration;
                 this._sha1 = await Sha1Generator.blob2Sha1(this._blob);
+
+                const metadata = await musicMetadata.parseBlob(blob);
+                const pic = metadata.common.picture?.[0];
+                if (pic) {
+                    this._picBlob = new Blob([pic.data], { type: pic.format });
+                }
+                this._artist = artist || metadata.common.artist;
+
                 this._status = EN_MUSIC_LOAD_STATUS.SUCCESS;
                 resolve(this);
             };
@@ -61,7 +67,7 @@ export class MusicUploadElement {
             url: this._url,
             duration: this._duration,
             artist: this._artist,
-            thumbUrl: this._thumbUrl,
+            picBlob: this._picBlob,
             blob: this._blob,
             sha1: this._sha1,
             status: this._status,
