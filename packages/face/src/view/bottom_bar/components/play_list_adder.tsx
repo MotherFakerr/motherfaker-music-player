@@ -27,7 +27,7 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
         super(props);
         this.state = {
             isShow: false,
-            inputUrl: '',
+            inputUrl: 'https://github.com/MotherFakerr/My-Suno-Collection',
         };
     }
 
@@ -58,7 +58,6 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
                     <div className='upload-container'>
                         <h2>输入音乐地址</h2>
                         <Input.Search
-                            defaultValue={'https://github.com/MotherFakerr/My-Suno-Collection'}
                             size='large'
                             value={this.state.inputUrl}
                             enterButton={<span className='iconfont icon-plus' aria-hidden />}
