@@ -46,7 +46,7 @@ export class TaskQueue<R extends ANY = ANY> implements ITaskQueue<R> {
                 }
             }
         } else {
-            for (let i = 0; i < Math.ceil(this._tasks.length / concurrency); i += concurrency) {
+            for (let i = 0; i < Math.ceil(this._tasks.length / concurrency); i++) {
                 const tasks = this._tasks.slice(i * concurrency, (i + 1) * concurrency);
                 if (type === EN_TASK_QUEUE_TYPE.PARALLEL) {
                     const promises = tasks.map((task) => task.start());

@@ -27,7 +27,7 @@ export class Loading extends React.Component<Partial<IProps>> {
                                 <div className='loading-content'>
                                     {progress !== undefined && (
                                         <Progress
-                                            percent={Number((progress * 100).toFixed(2))}
+                                            percent={Number((progress * 100).toFixed(0))}
                                             width={80}
                                             style={{ marginLeft: 16 }}
                                             strokeColor={{
