@@ -33,7 +33,6 @@ export class TaskQueue<R extends ANY = ANY> implements ITaskQueue<R> {
                     results.push(res);
                 } catch {
                     errors.push(...task.getErrors());
-                    break;
                 }
             }
         } else if (type === EN_TASK_QUEUE_TYPE.ALLSETTLED_SERIAL) {
@@ -43,6 +42,7 @@ export class TaskQueue<R extends ANY = ANY> implements ITaskQueue<R> {
                     results.push(res);
                 } catch {
                     errors.push(...task.getErrors());
+                    break;
                 }
             }
         } else {
