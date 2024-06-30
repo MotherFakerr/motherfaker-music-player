@@ -1,18 +1,6 @@
 import { TimeFormatter } from '@github-music-player/core';
-import { Sha1Generator } from '@github-music-player/core/src/utils/sha1_generator';
 import { Player } from '../player_element';
 import { IMusicElement, IMusicEntity } from './interface';
-
-export interface IMusicInitParams {
-    name: string;
-    format?: string;
-    blob: Blob;
-    url?: string;
-    sha1?: string;
-    artist?: string;
-    thumbUrl?: string;
-    duration?: number;
-}
 
 export enum EN_MUSIC_LOAD_STATUS {
     SUCCESS,
@@ -20,6 +8,8 @@ export enum EN_MUSIC_LOAD_STATUS {
 }
 
 export class MusicElement implements IMusicElement {
+    private _id: number;
+
     private _status: EN_MUSIC_LOAD_STATUS;
 
     private _blob: Blob;
@@ -40,9 +30,10 @@ export class MusicElement implements IMusicElement {
 
     private _sha1: string;
 
-    init(params: IMusicInitParams): Promise<this> {
-        const { name, format, blob, url, sha1, artist, thumbUrl, duration } = params;
+    init(params: IMusicEntity): this {
+        const { id, name, format, blob, url, sha1, artist, thumbUrl, duration } = params;
 
+        this._id = id;
         const nameArr = name.split('.');
         this._format = format || nameArr[nameArr.length - 1];
         this._name = nameArr[0];
@@ -54,21 +45,13 @@ export class MusicElement implements IMusicElement {
             this._blobUrl = URL.createObjectURL(blob);
         }
         this._url = url;
+        this._duration = duration;
+        this._sha1 = sha1;
+        return this;
+    }
 
-        return new Promise((resolve) => {
-            const audio = new Audio(this._blobUrl);
-            audio.onloadedmetadata = async () => {
-                this._duration = duration || audio.duration;
-                this._sha1 = sha1 || (await Sha1Generator.blob2Sha1(this._blob));
-                this._status = EN_MUSIC_LOAD_STATUS.SUCCESS;
-                resolve(this);
-            };
-            audio.onerror = () => {
-                this._status = EN_MUSIC_LOAD_STATUS.ERROR;
-                URL.revokeObjectURL(this._blobUrl);
-                resolve(this);
-            };
-        });
+    public get id(): number {
+        return this._id;
     }
 
     public get status(): EN_MUSIC_LOAD_STATUS {
@@ -117,7 +100,9 @@ export class MusicElement implements IMusicElement {
 
     public dump(): IMusicEntity {
         return {
+            id: this._id,
             name: this.name,
+            format: this.format,
             url: this.url,
             duration: this.duration,
             artist: this.artist,

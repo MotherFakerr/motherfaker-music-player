@@ -35,7 +35,7 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
         const { uploadLocalMusic } = this.props.musicStore!;
         const { isShow } = this.state;
         return (
-            <div className='play-list-adder'>
+            <div className='play-list-adder' title='添加到播放列表'>
                 <span className='icon-button iconfont icon-playlist-plus' aria-hidden onClick={() => this.setState({ isShow: true })} />
                 <Modal
                     className='play-list-adder-modal'

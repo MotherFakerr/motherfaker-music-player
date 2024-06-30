@@ -10,13 +10,3 @@ export interface IMusic extends IMusicEntity {
     id: number;
     blobUrl?: string;
 }
-
-export interface IPureMusic {
-    name: string;
-    url: string;
-    duration: string;
-    artist?: string;
-    thumbUrl?: string;
-    blob: Blob;
-    sha1: string;
-}

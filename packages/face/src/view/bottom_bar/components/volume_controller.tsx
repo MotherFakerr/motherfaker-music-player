@@ -16,19 +16,19 @@ export class VolumnController extends React.Component<Partial<IProps>> {
     }
 
     public render(): React.ReactElement {
-        const { audioElement, curVolume, updateVolume } = this.props.musicStore!;
-
+        const { player } = this.props.musicStore!;
+        const { volume, setVolume } = player;
         return (
-            <div className='volume-controller'>
+            <div className='volume-controller' title='音量'>
                 <Popover
                     content={
                         <MySlider
-                            value={curVolume}
+                            value={volume * 100}
                             min={0}
                             max={100}
                             step={0.1}
                             onChange={(e) => {
-                                updateVolume(e);
+                                setVolume(e / 100);
                             }}
                             vertical
                         />
@@ -36,7 +36,7 @@ export class VolumnController extends React.Component<Partial<IProps>> {
                     trigger='click'
                     color='#292929'
                     getPopupContainer={(trigger) => trigger.parentElement!}>
-                    {audioElement.volume > 0 ? (
+                    {volume > 0 ? (
                         <span className='icon-button iconfont icon-volume-high' />
                     ) : (
                         <span className='icon-button iconfont icon-volume-off' />

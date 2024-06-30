@@ -4,6 +4,7 @@ import { inject, observer } from 'mobx-react';
 import { List, Popover } from 'antd';
 import { IMusicStore } from '../../../store/music_store';
 import { IMusic } from '../../../utils/interface';
+import { TimeFormatter } from '@github-music-player/core';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -16,10 +17,10 @@ export class PlayList extends React.Component<Partial<IProps>> {
     }
 
     public render(): React.ReactElement {
-        const { musicList, curMusicIndex, setCurMusicIndex, deleteMusic, clearMusicList } = this.props.musicStore!;
-
+        const { player, deleteMusic, clearMusicList } = this.props.musicStore!;
+        const { musicList, playingIndex, setPlayingIndex } = player;
         return (
-            <div className='play-list'>
+            <div className='play-list' title='播放列表'>
                 <Popover
                     content={
                         <List
@@ -34,14 +35,14 @@ export class PlayList extends React.Component<Partial<IProps>> {
                                     </div>
                                 </div>
                             }
-                            dataSource={musicList}
+                            dataSource={musicList.map((item) => item.dump())}
                             renderItem={(item: IMusic, index: number) => (
                                 <div
                                     className='list-item'
                                     aria-hidden
-                                    style={{ backgroundColor: curMusicIndex === index ? '#15161a' : undefined }}
-                                    onClick={() => setCurMusicIndex(index)}>
-                                    <div>{curMusicIndex === index && <span className='iconfont icon-caret-right' />}</div>
+                                    style={{ backgroundColor: playingIndex === index ? '#15161a' : undefined }}
+                                    onClick={() => setPlayingIndex(index)}>
+                                    <div>{playingIndex === index && <span className='iconfont icon-caret-right' />}</div>
                                     <div>{item.name}</div>
                                     <div>
                                         <span
@@ -54,7 +55,7 @@ export class PlayList extends React.Component<Partial<IProps>> {
                                         />
                                     </div>
                                     <div>{item.artist ?? '未知艺术家'}</div>
-                                    <div>{item.duration}</div>
+                                    <div>{TimeFormatter.format(item.duration)}</div>
                                 </div>
                             )}
                         />

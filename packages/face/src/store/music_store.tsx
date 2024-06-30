@@ -1,47 +1,20 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, makeAutoObservable, makeObservable, observable } from 'mobx';
 import { message } from 'antd';
 import React from 'react';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
-import { IMusic, IPureMusic } from '../utils/interface';
 import { MusicIndexDBHelper } from '../utils/indexdb_utils/music_indexdb_helper';
 import { MusicFetchHelper } from '../utils/music_load_utils.ts/music_fetch_helper';
-import { MusicElement } from '@github-music-player/element';
-
-export enum EN_PLAYING_STATUS {
-    PLAYING = 'playing',
-    PAUSED = 'paused',
-    LOADING = 'loading',
-}
+import { EN_PLAYER_REPEAT_MODE, EN_PLAYER_STATUS, IMusicUploadParams, IPlayer, MusicElement, Player } from '@github-music-player/element';
 
 export interface IMusicStore {
-    audioElement: HTMLAudioElement;
-    musicList: IMusic[];
-    curMusicIndex: number;
-    curMusic: IMusic | undefined;
-    curProgress: number;
-    bProgressDragging: boolean;
-    playingStatus: EN_PLAYING_STATUS;
-    curVolume: number;
-    initAudioElement: () => void;
+    player: IPlayer;
+
     initMusicList: () => Promise<void>;
     fetchMusicByUrl: (url: string) => Promise<void>;
     uploadLocalMusic: (files: File[]) => Promise<void>;
-    setCurMusicIndex: (index: number) => void;
-    setBProgressDragging: (bDragging: boolean) => void;
-    // 更新进度显示
-    updateCurProgress: (progress: number) => void;
-    // 设置音频进度
-    setAudioProgress: (progress: number) => void;
-    playAudio: () => void;
-    pauseAudio: () => void;
-    prevAudio: () => void;
-    nextAudio: () => void;
-    loadAudio: () => void;
-    isMusicPrepared: () => boolean;
-    updateVolume: (volume: number) => void;
     deleteMusic: (id: number) => Promise<void>;
     clearMusicList: () => Promise<void>;
 }
@@ -50,64 +23,40 @@ export interface IMusicStore {
 export class MusicStore extends AbstractStore implements IMusicStore {
     _musicHashSet = new Set<string>();
 
-    audioElement: HTMLAudioElement = document.createElement('audio');
-
-    musicList: IMusic[] = [];
-
-    curMusicIndex = 0;
-
-    curProgress = 0;
+    player: IPlayer = Player.getInstance();
 
     bProgressDragging = false;
 
-    playingStatus = EN_PLAYING_STATUS.PAUSED;
-
-    curVolume = 100;
-
-    get curMusic(): IMusic | undefined {
-        return this.musicList[this.curMusicIndex];
-    }
-
     constructor() {
         super();
+        makeAutoObservable(this.player, {}, { autoBind: true });
         makeObservable(this, {
-            audioElement: observable,
-            musicList: observable,
-            curMusicIndex: observable,
-            curMusic: computed,
-            curProgress: observable,
-            bProgressDragging: observable,
-            playingStatus: observable,
-            curVolume: observable,
-
-            initAudioElement: action.bound,
             initMusicList: action.bound,
             fetchMusicByUrl: action.bound,
             uploadLocalMusic: action.bound,
-            setCurMusicIndex: action.bound,
-            updateCurProgress: action.bound,
-            setBProgressDragging: action.bound,
-            setAudioProgress: action.bound,
-            playAudio: action.bound,
-            pauseAudio: action.bound,
-            prevAudio: action.bound,
-            nextAudio: action.bound,
-            loadAudio: action.bound,
-            isMusicPrepared: action.bound,
-            updateVolume: action.bound,
             deleteMusic: action.bound,
             clearMusicList: action.bound,
         });
     }
 
-    initAudioElement(): void {
-        this.audioElement = document.getElementById('audio') as HTMLAudioElement;
-    }
-
     async initMusicList(): Promise<void> {
-        const musicList = await MusicIndexDBHelper.getMusics();
-        this.musicList = musicList.map((m) => ({ ...m, blobUrl: URL.createObjectURL(m.blob) }));
-        this._musicHashSet = new Set<string>([...this.musicList.map((m) => m.sha1)]);
+        const musics = await MusicIndexDBHelper.getMusics();
+        const musicList = [];
+        for (const m of musics) {
+            const music = new MusicElement().init(m);
+            musicList.push(music);
+        }
+
+        this._musicHashSet = new Set<string>([...musicList.map((m) => m.sha1)]);
+        this.player.init({
+            musicList,
+            playingIndex: 0,
+            repeatMode: EN_PLAYER_REPEAT_MODE.REPEAT,
+            progress: 0,
+            status: EN_PLAYER_STATUS.PAUSED,
+            volume: 1,
+        });
+        this.player.playMusic(this.player.playingMusic);
     }
 
     async fetchMusicByUrl(url: string): Promise<void> {
@@ -122,100 +71,34 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
     }
 
-    setCurMusicIndex(index: number): void {
-        this.curMusicIndex = index;
-    }
-
-    updateCurProgress(progress: number): void {
-        this.curProgress = progress;
-    }
-
-    setBProgressDragging(bDragging: boolean): void {
-        this.bProgressDragging = bDragging;
-    }
-
-    setAudioProgress(progress: number): void {
-        const time = (progress / 100) * this.audioElement.duration;
-        if (time !== undefined) {
-            this.audioElement.currentTime = (progress / 100) * this.audioElement.duration;
-        }
-    }
-
-    playAudio(): void {
-        if (this.isMusicPrepared()) {
-            this.audioElement
-                .play()
-                .then(() => {
-                    this.playingStatus = EN_PLAYING_STATUS.PLAYING;
-                })
-                .catch(() => {
-                    this.playingStatus = EN_PLAYING_STATUS.PAUSED;
-                });
-        }
-    }
-
-    pauseAudio(): void {
-        this.audioElement.pause();
-        this.playingStatus = EN_PLAYING_STATUS.PAUSED;
-    }
-
-    prevAudio(): void {
-        if (this.curMusicIndex > 0) {
-            this.setCurMusicIndex(this.curMusicIndex - 1);
-            this.playAudio();
-        }
-    }
-
-    nextAudio(): void {
-        if (this.curMusicIndex < this.musicList.length - 1) {
-            this.setCurMusicIndex(this.curMusicIndex + 1);
-            this.playAudio();
-        }
-    }
-
-    loadAudio(): void {
-        if (this.audioElement.src) {
-            this.playingStatus = EN_PLAYING_STATUS.LOADING;
-        } else {
-            this.playingStatus = EN_PLAYING_STATUS.PAUSED;
-        }
-    }
-
-    isMusicPrepared(): boolean {
-        return this.audioElement.readyState >= 3;
-    }
-
-    updateVolume(volume: number): void {
-        this.curVolume = volume;
-        this.audioElement.volume = volume / 100;
-    }
-
     async deleteMusic(id: number): Promise<void> {
-        const { sha1 } = this.musicList.find((m) => m.id === id)!;
+        const musicList = this.player.musicList;
+        const { sha1 } = musicList.find((m) => m.id === id)!;
         await MusicIndexDBHelper.deleteMusics([id]);
-        this.musicList = this.musicList.filter((m) => m.id !== id);
+        const newMusicList = musicList.filter((m) => m.id !== id);
+        this.player.setMusicList(newMusicList);
         this._musicHashSet.delete(sha1);
-        if (this.musicList.length === 0) {
-            this.pauseAudio();
-            this.audioElement.load();
+        if (newMusicList.length === 0) {
+            this.player.pause();
+            this.player.playMusic();
         }
     }
 
     async clearMusicList(): Promise<void> {
-        await MusicIndexDBHelper.deleteMusics(this.musicList.map((m) => m.id));
-        this.musicList = [];
+        await MusicIndexDBHelper.deleteMusics(this.player.musicList.map((m) => m.id));
+        this.player.setMusicList([]);
         this._musicHashSet = new Set<string>();
-        this.pauseAudio();
-        this.audioElement.load();
+        this.player.pause();
+        this.player.playMusic();
     }
 
-    private _postFetchMusic = async (musics: MusicElement[]): Promise<{ errorMsgs: string[] }> => {
+    private _postFetchMusic = async (musics: IMusicUploadParams[]): Promise<{ errorMsgs: string[] }> => {
         const errorMsgs = [];
         const musicEntities = [];
         const musicHashSet = new Set<string>([...this._musicHashSet]);
         for (const music of musics) {
             if (!musicHashSet.has(music.sha1)) {
-                musicEntities.push(music.dump());
+                musicEntities.push(music);
                 musicHashSet.add(music.sha1);
             } else {
                 errorMsgs.push(`文件已存在，跳过加载，错误文件：${music.name}`);
@@ -224,10 +107,13 @@ export class MusicStore extends AbstractStore implements IMusicStore {
 
         const newMusics = await MusicIndexDBHelper.addMusics(musicEntities);
 
-        for (const music of newMusics) {
+        const newMusicElements = [];
+        for (const m of newMusics) {
+            const music = new MusicElement().init(m);
             this._musicHashSet.add(music.sha1);
-            this.musicList.push({ ...music, blobUrl: URL.createObjectURL(music.blob) });
+            newMusicElements.push(music);
         }
+        this.player.setMusicList([...this.player.musicList, ...newMusicElements]);
 
         return { errorMsgs };
     };

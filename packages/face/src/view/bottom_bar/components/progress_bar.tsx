@@ -8,37 +8,51 @@ import { TimeFormatter } from '@github-music-player/core';
 interface IProps {
     musicStore: IMusicStore;
 }
+interface IState {
+    draggingProgress: number;
+}
 @inject('musicStore')
 @observer
-export class ProgressBar extends React.Component<Partial<IProps>> {
+export class ProgressBar extends React.Component<Partial<IProps>, IState> {
     constructor(props: IProps) {
         super(props);
+        this.state = {
+            draggingProgress: 0,
+        };
     }
 
     public render(): React.ReactElement {
-        const { curProgress, audioElement, updateCurProgress, setBProgressDragging, setAudioProgress } = this.props.musicStore!;
-
+        const { player } = this.props.musicStore!;
+        const { progress, playingMusic, setProgressUpdatable, jumpToProgress } = player;
+        const { draggingProgress } = this.state;
         return (
             <div className='progress-bar'>
                 <MySlider
-                    value={curProgress}
+                    value={(this._onDragging() ? draggingProgress : progress) * 100}
                     min={0}
                     max={100}
                     step={0.1}
                     onChange={(e) => {
-                        updateCurProgress(e);
-                        setBProgressDragging(true);
+                        setProgressUpdatable(false);
+                        this.setState({ draggingProgress: e / 100 });
                     }}
                     onChangeComplete={(e) => {
-                        setBProgressDragging(false);
-                        setAudioProgress(e);
+                        setProgressUpdatable(true);
+                        jumpToProgress(e / 100);
                     }}
                 />
                 <div className='time'>
-                    <span>{`${TimeFormatter.format(audioElement.currentTime || 0)}`}</span>
-                    {` / ${TimeFormatter.format(audioElement.duration || 0)}`}
+                    <span>{`${TimeFormatter.format(
+                        (this._onDragging() ? draggingProgress : progress) * (playingMusic?.duration || 0),
+                    )}`}</span>
+                    {` / ${TimeFormatter.format(playingMusic?.duration || 0)}`}
                 </div>
             </div>
         );
+    }
+
+    private _onDragging(): boolean {
+        const { player } = this.props.musicStore!;
+        return !player.progressUpdatable;
     }
 }

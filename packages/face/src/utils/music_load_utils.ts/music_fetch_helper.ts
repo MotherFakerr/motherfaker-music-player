@@ -2,7 +2,7 @@
 import { IMusicFile } from '../interface';
 import { LoadingHelper } from '../loading_helper';
 import { EN_TASK_QUEUE_TYPE, EN_TASK_STATUS, ITaskError, Task, TaskQueue } from '@github-music-player/core';
-import { EN_MUSIC_LOAD_STATUS, MusicElement } from '@github-music-player/element';
+import { EN_MUSIC_LOAD_STATUS, IMusicUploadParams, MusicUploadElement } from '@github-music-player/element';
 
 export class MusicFetchHelperImpl {
     checkMusicFormat(type: string): boolean {
@@ -10,7 +10,7 @@ export class MusicFetchHelperImpl {
         return types.includes(type);
     }
 
-    fetchMusicByUrl = async (url: string): Promise<{ musics: MusicElement[]; errorMsgs: string[] }> => {
+    fetchMusicByUrl = async (url: string): Promise<{ musics: IMusicUploadParams[]; errorMsgs: string[] }> => {
         const matchRes = url.match(/^https:\/\/github\.com/);
 
         let res;
@@ -22,10 +22,10 @@ export class MusicFetchHelperImpl {
         return res;
     };
 
-    uploadLocalMusic = async (files: File[]): Promise<{ musics: MusicElement[]; errorMsgs: string[] }> => {
+    uploadLocalMusic = async (files: File[]): Promise<{ musics: IMusicUploadParams[]; errorMsgs: string[] }> => {
         const normalizeProgress = 1 / files.length;
         let curProgress = 0;
-        const musics: MusicElement[] = [];
+        const musics: IMusicUploadParams[] = [];
         const errorMsgs: string[] = [];
 
         const taskQueue = new TaskQueue(
@@ -34,7 +34,7 @@ export class MusicFetchHelperImpl {
                 const name = nameArr.slice(0, nameArr.length - 1).join('.');
                 const format = nameArr[nameArr.length - 1];
 
-                const task = new Task<MusicElement>({
+                const task = new Task<IMusicUploadParams>({
                     onPending: async (task) => {
                         LoadingHelper.setLoadingMessage(name);
                         if (!this.checkMusicFormat(format)) {
@@ -46,19 +46,20 @@ export class MusicFetchHelperImpl {
                     },
                     onRunning: async (task) => {
                         const blob = new Blob([file], { type: file.type });
-                        const music = await new MusicElement().init({
+                        const music = await new MusicUploadElement().init({
                             name,
                             artist: 'unknown',
                             blob,
                         });
+                        const uploadParams = music.dump();
 
-                        if (music.status === EN_MUSIC_LOAD_STATUS.SUCCESS) {
-                            task.markSuccess(music);
+                        if (uploadParams.status === EN_MUSIC_LOAD_STATUS.SUCCESS) {
+                            task.markSuccess(uploadParams);
                         } else {
                             task.markFailed(new Error(`文件加载失败，错误文件：${file.name}`));
                         }
                     },
-                    onSuccess: async (_, res: MusicElement) => {
+                    onSuccess: async (_, res: IMusicUploadParams) => {
                         musics.push(res);
                         await LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));
                     },
@@ -79,7 +80,7 @@ export class MusicFetchHelperImpl {
         };
     };
 
-    private _fetchGithubMusicList = async (url: string): Promise<{ musics: MusicElement[]; errorMsgs: string[] }> => {
+    private _fetchGithubMusicList = async (url: string): Promise<{ musics: IMusicUploadParams[]; errorMsgs: string[] }> => {
         try {
             const urlParts = url.split('/');
             const repoParts = urlParts[urlParts.length - 1].split('.');
@@ -106,7 +107,7 @@ export class MusicFetchHelperImpl {
         }
     };
 
-    private _fetchNormalMusicList = async (url: string): Promise<{ musics: MusicElement[]; errorMsgs: string[] }> => {
+    private _fetchNormalMusicList = async (url: string): Promise<{ musics: IMusicUploadParams[]; errorMsgs: string[] }> => {
         try {
             const matchRes = url.match(/\/([^/?]+)\.(\w+)(?:\?.*)?$/);
             if (!matchRes) {
@@ -135,10 +136,10 @@ export class MusicFetchHelperImpl {
         }
     };
 
-    private _downloadMusics = async (musicFiles: IMusicFile[]): Promise<{ musics: MusicElement[]; errorMsgs: string[] }> => {
+    private _downloadMusics = async (musicFiles: IMusicFile[]): Promise<{ musics: IMusicUploadParams[]; errorMsgs: string[] }> => {
         const normalizeProgress = 1 / musicFiles.length;
         let curProgress = 0;
-        const musics: MusicElement[] = [];
+        const musics: IMusicUploadParams[] = [];
         const errorMsgs: string[] = [];
 
         const taskQueue = new TaskQueue(
@@ -149,7 +150,7 @@ export class MusicFetchHelperImpl {
 
                 let res: Response;
 
-                const task = new Task<MusicElement>({
+                const task = new Task<IMusicUploadParams>({
                     onPending: async (task) => {
                         if (!this.checkMusicFormat(format)) {
                             task.markFailed(new Error(`${format}格式不支持，错误文件：${file.name}`));
@@ -168,20 +169,20 @@ export class MusicFetchHelperImpl {
                     },
                     onRunning: async (task) => {
                         const blob = await res.blob();
-                        const music = await new MusicElement().init({
+                        const music = await new MusicUploadElement().init({
                             name: file.name.split('.')[0],
                             artist: 'unknown',
                             url: file.download_url,
                             blob,
                         });
-
-                        if (music.status === EN_MUSIC_LOAD_STATUS.SUCCESS) {
-                            task.markSuccess(music);
+                        const uploadParams = music.dump();
+                        if (uploadParams.status === EN_MUSIC_LOAD_STATUS.SUCCESS) {
+                            task.markSuccess(uploadParams);
                         } else {
                             task.markFailed(new Error(`文件加载失败，错误文件：${file.name}`));
                         }
                     },
-                    onSuccess: async (_, res: MusicElement) => {
+                    onSuccess: async (_, res: IMusicUploadParams) => {
                         musics.push(res);
                         await LoadingHelper.setLoadingMessage(name);
                         await LoadingHelper.setLoadingProgress((curProgress += normalizeProgress));

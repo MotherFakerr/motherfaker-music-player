@@ -44,6 +44,8 @@
     "devDependencies": {
         "webpack": "^5.75.0",
         "webpack-cli": "^5.0.1",
-        "webpack-dev-server": "^4.11.1"
+        "webpack-dev-server": "^4.11.1",
+        "@github-music-player/core": "workspace:*",
+        "@github-music-player/element": "workspace:*"
     }
 }

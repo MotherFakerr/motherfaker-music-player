@@ -1,6 +1,6 @@
 import { IndexDBHelper } from './indexdb_helper';
 import { IMusic } from '../interface';
-import { IMusicEntity } from '@github-music-player/element';
+import { IMusicUploadParams } from '@github-music-player/element';
 
 class MusicIndexDBHelperImpl {
     #dbName = 'github-music-player-db';
@@ -21,7 +21,7 @@ class MusicIndexDBHelperImpl {
         this._db = db;
     }
 
-    public addMusics(musics: IMusicEntity[]): Promise<IMusic[]> {
+    public addMusics(musics: IMusicUploadParams[]): Promise<IMusic[]> {
         return new Promise<IMusic[]>((resolve, reject) => {
             const res: IMusic[] = [];
             const transaction = this._db.transaction([this.#storeName], 'readwrite');
