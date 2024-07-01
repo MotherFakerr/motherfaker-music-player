@@ -20,6 +20,7 @@ export interface IPlayer {
     repeatMode: EN_PLAYER_REPEAT_MODE;
     status: EN_PLAYER_STATUS;
     progressUpdatable: boolean;
+    frequencyData: Uint8Array;
     init(params: IPlayerInitParams): void;
     play(): this;
     pause(): this;

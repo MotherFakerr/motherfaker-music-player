@@ -1,6 +1,6 @@
 import { IMusicElement } from '../music_element/interface';
 import { EN_PLAYER_REPEAT_MODE, EN_PLAYER_STATUS, IPlayer, IPlayerInitParams } from './interface';
-
+export const FREQUENCY_DIVIDE_AMOUNT = 64;
 export class Player implements IPlayer {
     private static _instance: Player;
 
@@ -27,8 +27,13 @@ export class Player implements IPlayer {
 
     public progressUpdatable = true;
 
+    public frequencyData: Uint8Array;
+
+    private _analyser: AnalyserNode;
+
     constructor() {
         this._player = document.createElement('audio');
+
         this._player.onloadstart = () => {
             if (this._player.src) {
                 this.setStatus(EN_PLAYER_STATUS.LOADING);
@@ -54,11 +59,39 @@ export class Player implements IPlayer {
                 this.setPlayingIndex(randomIndex);
             }
         };
-        this._player.ontimeupdate = () => {
+        // this._player.ontimeupdate = () => {
+        //     this.setProgress(this._player.currentTime / this._player.duration);
+
+        //     if (this._analyser && frequencyData) {
+        //         this._analyser.getByteFrequencyData(frequencyData);
+        //         console.log(this.frequencyData);
+        //         this.frequencyData = structuredClone(frequencyData); // new Uint8Array(bufferLength);frequencyData.subarray()
+        //     }
+        // };
+
+        const context = new AudioContext();
+        this._analyser = context.createAnalyser();
+        this._analyser.fftSize = FREQUENCY_DIVIDE_AMOUNT;
+        const source = context.createMediaElementSource(this._player);
+        source.connect(this._analyser);
+        this._analyser.connect(context.destination);
+
+        const bufferLength = this._analyser.frequencyBinCount;
+        const frequencyData = new Uint8Array(bufferLength);
+        this.frequencyData = frequencyData;
+
+        const requestAnimation = () => {
+            requestAnimationFrame(requestAnimation);
             this.setProgress(this._player.currentTime / this._player.duration);
+
+            if (this._analyser && frequencyData) {
+                this._analyser.getByteFrequencyData(frequencyData);
+
+                this.setFrequencyData(structuredClone(frequencyData));
+            }
         };
 
-        // document.body.appendChild(this._player);
+        requestAnimation();
     }
 
     public get playingMusic(): IMusicElement | undefined {
@@ -164,6 +197,11 @@ export class Player implements IPlayer {
 
     public setProgressUpdatable(progressUpdatable: boolean): this {
         this.progressUpdatable = progressUpdatable;
+        return this;
+    }
+
+    public setFrequencyData(frequencyData: Uint8Array): this {
+        this.frequencyData = frequencyData;
         return this;
     }
 

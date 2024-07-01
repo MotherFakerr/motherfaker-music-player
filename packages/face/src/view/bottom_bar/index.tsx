@@ -22,11 +22,6 @@ export class BottomBar extends React.Component<Partial<IProps>> {
         super(props);
     }
 
-    componentDidMount(): void {
-        // const { initAudioElement } = this.props.musicStore!;
-        // initAudioElement();
-    }
-
     public render(): React.ReactElement {
         const { player } = this.props.musicStore!;
         const { play, pause, prev, next, status, playingMusic } = player;
@@ -71,23 +66,6 @@ export class BottomBar extends React.Component<Partial<IProps>> {
                         <PlayListRepeat />
                     </div>
                 </div>
-                {/* <audio
-                    id='audio'
-                    onLoadStart={() => loadAudio()}
-                    onLoadedData={() => {
-                        audioElement.click();
-                        playAudio();
-                    }}
-                    onEnded={() => handleAudioEnded()}
-                    // onTimeUpdate={(e) => {
-                    //     if (bProgressDragging) {
-                    //         return;
-                    //     }
-                    //     updateCurProgress((e.currentTarget.currentTime / e.currentTarget.duration) * 100);
-                    // }}
-                    src={curMusic?.blobUrl ?? curMusic?.url}>
-                    <track kind='captions' />
-                </audio> */}
             </div>
         );
     }

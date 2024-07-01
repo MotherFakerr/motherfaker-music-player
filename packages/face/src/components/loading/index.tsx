@@ -1,5 +1,5 @@
 import React from 'react';
-import { Progress, Spin } from 'antd';
+import { ConfigProvider, Progress, Spin } from 'antd';
 import './index.less';
 import { inject, observer } from 'mobx-react';
 import { ILoadingStore } from '../../store/loading_store';
@@ -26,15 +26,17 @@ export class Loading extends React.Component<Partial<IProps>> {
                             tip={
                                 <div className='loading-content'>
                                     {progress !== undefined && (
-                                        <Progress
-                                            percent={Number((progress * 100).toFixed(0))}
-                                            width={80}
-                                            style={{ marginLeft: 16 }}
-                                            strokeColor={{
-                                                '0%': '#FBB03B',
-                                                '100%': '#D4145A',
-                                            }}
-                                        />
+                                        <ConfigProvider theme={{ token: { motion: false } }}>
+                                            <Progress
+                                                percent={Number((progress * 100).toFixed(0))}
+                                                width={80}
+                                                style={{ marginLeft: 16 }}
+                                                strokeColor={{
+                                                    '0%': '#FBB03B',
+                                                    '100%': '#D4145A',
+                                                }}
+                                            />
+                                        </ConfigProvider>
                                     )}
                                     <div className='loading-message'>{message}</div>
                                 </div>
