@@ -30,7 +30,7 @@ export class P5Store extends AbstractStore implements IP5Store {
     private _discPicSizeCoefficient = 0.22;
 
     /** 唱片旋转速度 */
-    private _rotateSpeed = 0.02;
+    private _rotateSpeed = 0.005;
 
     /** 唱片是否逆时针旋转 */
     private _rotateCCW = true;
@@ -159,6 +159,9 @@ export class P5Store extends AbstractStore implements IP5Store {
             p.clip(() => p.circle(0, 0, discPicDiameter));
             p.image(pic, -discPicRadius, -discPicRadius, discPicDiameter, discPicDiameter);
             p.pop();
+            if (Player.getInstance().status !== 'playing') {
+                return;
+            }
             if (this._rotateCCW) {
                 rotateAngle -= this._rotateSpeed;
             } else {
@@ -211,14 +214,14 @@ export class P5Store extends AbstractStore implements IP5Store {
         let r = 0,
             g = 0,
             b = 0;
-        let step = 100;
+        let step = 20;
         let count = 0;
 
         for (let i = x; i < x + w; i += step) {
             for (let j = y; j < y + h; j += step) {
                 let index = 4 * (i + j * img.width);
                 if (!img.pixels[index] || !img.pixels[index + 1] || !img.pixels[index + 2]) {
-                    break;
+                    continue;
                 }
                 r += img.pixels[index];
                 g += img.pixels[index + 1];
@@ -227,6 +230,6 @@ export class P5Store extends AbstractStore implements IP5Store {
             }
         }
 
-        return p5.color((r / count) * 0.3, (g / count) * 0.3, (b / count) * 0.3);
+        return p5.color((r / count) * 0.2, (g / count) * 0.2, (b / count) * 0.2);
     }
 }

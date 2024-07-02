@@ -131,17 +131,33 @@ export class Player implements IPlayer {
     }
 
     public prev(): this {
-        if (this.playingIndex > 0) {
-            this.setPlayingIndex(this.playingIndex - 1);
-            this.playMusic(this.playingMusic);
+        if (this.repeatMode === EN_PLAYER_REPEAT_MODE.REPEAT_ONCE) {
+            this.play();
+        } else if (this.repeatMode === EN_PLAYER_REPEAT_MODE.REPEAT) {
+            if (this.playingIndex > 0) {
+                this.setPlayingIndex(this.playingIndex - 1);
+            } else {
+                this.setPlayingIndex(0);
+            }
+        } else if (this.repeatMode === EN_PLAYER_REPEAT_MODE.SHUFFLE) {
+            const randomIndex = Math.floor(Math.random() * this.musicList.length);
+            this.setPlayingIndex(randomIndex);
         }
         return this;
     }
 
     public next(): this {
-        if (this.playingIndex < this.musicList.length - 1) {
-            this.setPlayingIndex(this.playingIndex + 1);
-            this.playMusic(this.playingMusic);
+        if (this.repeatMode === EN_PLAYER_REPEAT_MODE.REPEAT_ONCE) {
+            this.play();
+        } else if (this.repeatMode === EN_PLAYER_REPEAT_MODE.REPEAT) {
+            if (this.playingIndex < this.musicList.length - 1) {
+                this.setPlayingIndex(this.playingIndex + 1);
+            } else {
+                this.setPlayingIndex(0);
+            }
+        } else if (this.repeatMode === EN_PLAYER_REPEAT_MODE.SHUFFLE) {
+            const randomIndex = Math.floor(Math.random() * this.musicList.length);
+            this.setPlayingIndex(randomIndex);
         }
         return this;
     }
