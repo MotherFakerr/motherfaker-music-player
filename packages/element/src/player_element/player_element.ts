@@ -1,6 +1,6 @@
 import { IMusicElement } from '../music_element/interface';
 import { EN_PLAYER_REPEAT_MODE, EN_PLAYER_STATUS, IPlayer, IPlayerInitParams } from './interface';
-export const FREQUENCY_DIVIDE_AMOUNT = 64;
+export const FREQUENCY_DIVIDE_AMOUNT = 512;
 export class Player implements IPlayer {
     private static _instance: Player;
 
