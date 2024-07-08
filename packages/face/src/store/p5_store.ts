@@ -71,9 +71,6 @@ export class P5Store extends AbstractStore implements IP5Store {
                 p.createCanvas(width, height);
                 center = p.createVector(width / 2, height / 2);
             };
-            p.preload = () => {
-                pic = p.loadImage(DEFAULT_ALBUM);
-            };
             p.draw = () => {
                 p.noFill();
                 p.noStroke();
@@ -105,7 +102,7 @@ export class P5Store extends AbstractStore implements IP5Store {
             for (let y = 0; y < this._backgroundGradientPrecision; y++) {
                 const value = (y * height) / this._backgroundGradientPrecision;
                 let inter = p.map(value, 0, height, 0, 1);
-                let c = p.lerpColor(topColor, bottomColor, inter);
+                let c = p.lerpColor(topColor ?? p.color(0), bottomColor ?? p.color(0), inter);
                 p.fill(c);
                 p.rect(0, value, width, height / this._backgroundGradientPrecision);
             }
@@ -152,6 +149,9 @@ export class P5Store extends AbstractStore implements IP5Store {
         };
 
         const drawPic = (p: p5) => {
+            if (!pic) {
+                return;
+            }
             p.push();
             p.translate(center.x, center.y);
             p.rotate(rotateAngle);
