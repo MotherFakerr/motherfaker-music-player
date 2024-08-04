@@ -6,7 +6,6 @@ import { IMusicStore } from '../../../store/music_store';
 import { ILoadingStore } from '../../../store/loading_store';
 import { LoadingHelper } from '../../../utils/loading_helper';
 import { MusicIndexDBHelper } from '../../../utils/indexdb_utils/music_indexdb_helper';
-import { sleep } from '../../../utils/common_util';
 
 interface IProps {
     musicStore: IMusicStore;

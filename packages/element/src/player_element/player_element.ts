@@ -31,6 +31,8 @@ export class Player implements IPlayer {
 
     private _analyser: AnalyserNode;
 
+    private _audioContext: AudioContext;
+
     constructor() {
         this._player = document.createElement('audio');
 
@@ -42,7 +44,11 @@ export class Player implements IPlayer {
             }
         };
         this._player.onloadeddata = () => {
-            this._player.click();
+            if (this._audioContext.state === 'suspended') {
+                this.setStatus(EN_PLAYER_STATUS.PAUSED);
+                return;
+            }
+
             this.play();
         };
         this._player.onended = () => {
@@ -59,22 +65,13 @@ export class Player implements IPlayer {
                 this.setPlayingIndex(randomIndex);
             }
         };
-        // this._player.ontimeupdate = () => {
-        //     this.setProgress(this._player.currentTime / this._player.duration);
 
-        //     if (this._analyser && frequencyData) {
-        //         this._analyser.getByteFrequencyData(frequencyData);
-        //         console.log(this.frequencyData);
-        //         this.frequencyData = structuredClone(frequencyData); // new Uint8Array(bufferLength);frequencyData.subarray()
-        //     }
-        // };
-
-        const context = new AudioContext();
-        this._analyser = context.createAnalyser();
+        this._audioContext = new AudioContext();
+        this._analyser = this._audioContext.createAnalyser();
         this._analyser.fftSize = FREQUENCY_DIVIDE_AMOUNT;
-        const source = context.createMediaElementSource(this._player);
+        const source = this._audioContext.createMediaElementSource(this._player);
         source.connect(this._analyser);
-        this._analyser.connect(context.destination);
+        this._analyser.connect(this._audioContext.destination);
 
         const bufferLength = this._analyser.frequencyBinCount;
         const frequencyData = new Uint8Array(bufferLength);
@@ -112,6 +109,11 @@ export class Player implements IPlayer {
 
     public play(): this {
         if (this._isMusicPrepared()) {
+            // 浏览器安全策略自动suspend了
+            if (this._audioContext.state === 'suspended') {
+                this._audioContext.resume();
+            }
+
             this._player
                 .play()
                 .then(() => {
@@ -126,6 +128,7 @@ export class Player implements IPlayer {
 
     public pause(): this {
         this._player.pause();
+        // this._audioContext.suspend();
         this.setStatus(EN_PLAYER_STATUS.PAUSED);
         return this;
     }
