@@ -6,14 +6,16 @@ import React from 'react';
 import { AbstractStore } from './abstract_store';
 import { registerStore } from '.';
 import { MusicIndexDBHelper } from '../utils/indexdb_utils/music_indexdb_helper';
-import { MusicFetchHelper } from '../utils/music_load_utils.ts/music_fetch_helper';
+import { MusicFetchHelper } from '../utils/music_fetch_helper';
 import { EN_PLAYER_REPEAT_MODE, EN_PLAYER_STATUS, IMusicUploadParams, IPlayer, MusicElement, Player } from '@github-music-player/element';
+import { LoadingHelper } from '../utils/loading_helper';
 
 export interface IMusicStore {
     player: IPlayer;
 
     initMusicList: () => Promise<void>;
     fetchMusicByUrl: (url: string) => Promise<void>;
+    fetchAIMusics: () => Promise<void>;
     uploadLocalMusic: (files: File[]) => Promise<void>;
     deleteMusic: (id: number) => Promise<void>;
     clearMusicList: () => Promise<void>;
@@ -21,8 +23,6 @@ export interface IMusicStore {
 
 @registerStore('musicStore')
 export class MusicStore extends AbstractStore implements IMusicStore {
-    _musicHashSet = new Set<string>();
-
     player: IPlayer = Player.getInstance();
 
     bProgressDragging = false;
@@ -33,6 +33,7 @@ export class MusicStore extends AbstractStore implements IMusicStore {
         makeObservable(this, {
             initMusicList: action.bound,
             fetchMusicByUrl: action.bound,
+            fetchAIMusics: action.bound,
             uploadLocalMusic: action.bound,
             deleteMusic: action.bound,
             clearMusicList: action.bound,
@@ -47,7 +48,6 @@ export class MusicStore extends AbstractStore implements IMusicStore {
             musicList.push(music);
         }
 
-        this._musicHashSet = new Set<string>([...musicList.map((m) => m.sha1)]);
         this.player.init({
             musicList,
             playingIndex: 0,
@@ -60,26 +60,50 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     }
 
     async fetchMusicByUrl(url: string): Promise<void> {
-        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.fetchMusicByUrl(url);
+        await LoadingHelper.setLoading(true);
+        await LoadingHelper.setLoadingMessage('正在拉取音乐中');
+        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.fetchMusicByUrl(
+            url,
+            async (progress) => await LoadingHelper.setLoadingProgress(progress),
+            async (name) => await LoadingHelper.setLoadingMessage(name),
+        );
         const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
         this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
         this.player.playMusic(this.player.playingMusic);
+        await LoadingHelper.setLoading(false);
+    }
+
+    async fetchAIMusics(): Promise<void> {
+        await LoadingHelper.setLoading(true);
+        await LoadingHelper.setLoadingMessage('正在拉取音乐列表');
+        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.fetchAIMusics(
+            async (progress) => await LoadingHelper.setLoadingProgress(progress),
+            async (name) => await LoadingHelper.setLoadingMessage(name),
+        );
+        const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
+        this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
+        this.player.playMusic(this.player.playingMusic);
+        await LoadingHelper.setLoading(false);
     }
 
     async uploadLocalMusic(files: File[]): Promise<void> {
-        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.uploadLocalMusic(files);
+        await LoadingHelper.setLoading(true);
+        const { musics, errorMsgs: uploadErrorMsgs } = await MusicFetchHelper.uploadLocalMusic(
+            files,
+            async (progress) => await LoadingHelper.setLoadingProgress(progress),
+            async (name) => await LoadingHelper.setLoadingMessage(name),
+        );
         const { errorMsgs: postFetchErrorMsgs } = await this._postFetchMusic(musics);
         this._displayErrorMsgs([...uploadErrorMsgs, ...postFetchErrorMsgs]);
         this.player.playMusic(this.player.playingMusic);
+        await LoadingHelper.setLoading(false);
     }
 
     async deleteMusic(id: number): Promise<void> {
         const musicList = this.player.musicList;
-        const { sha1 } = musicList.find((m) => m.id === id)!;
         await MusicIndexDBHelper.deleteMusics([id]);
         const newMusicList = musicList.filter((m) => m.id !== id);
         this.player.setMusicList(newMusicList);
-        this._musicHashSet.delete(sha1);
         if (newMusicList.length === 0) {
             this.player.pause();
             this.player.playMusic();
@@ -89,35 +113,21 @@ export class MusicStore extends AbstractStore implements IMusicStore {
     async clearMusicList(): Promise<void> {
         await MusicIndexDBHelper.deleteMusics(this.player.musicList.map((m) => m.id));
         this.player.setMusicList([]);
-        this._musicHashSet = new Set<string>();
         this.player.pause();
         this.player.playMusic();
     }
 
     private _postFetchMusic = async (musics: IMusicUploadParams[]): Promise<{ errorMsgs: string[] }> => {
-        const errorMsgs = [];
-        const musicEntities = [];
-        const musicHashSet = new Set<string>([...this._musicHashSet]);
-        for (const music of musics) {
-            if (!musicHashSet.has(music.sha1)) {
-                musicEntities.push(music);
-                musicHashSet.add(music.sha1);
-            } else {
-                errorMsgs.push(`文件已存在，跳过加载，错误文件：${music.name}`);
-            }
-        }
-
-        const newMusics = await MusicIndexDBHelper.addMusics(musicEntities);
+        const newMusics = await MusicIndexDBHelper.addMusics(musics);
 
         const newMusicElements = [];
         for (const m of newMusics) {
             const music = new MusicElement().init(m);
-            this._musicHashSet.add(music.sha1);
             newMusicElements.push(music);
         }
         this.player.setMusicList([...this.player.musicList, ...newMusicElements]);
 
-        return { errorMsgs };
+        return { errorMsgs: [] };
     };
 
     private _displayErrorMsgs(errorMsgs: string[]): void {

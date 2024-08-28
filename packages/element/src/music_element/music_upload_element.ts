@@ -1,4 +1,3 @@
-import { Sha1Generator } from '@github-music-player/core';
 import { IMusicUploadParams, IMusicUploadRawParams } from './interface';
 import { EN_MUSIC_LOAD_STATUS } from './music_element';
 import * as musicMetadata from 'music-metadata-browser';
@@ -20,10 +19,10 @@ export class MusicUploadElement {
 
     private _picBlob?: Blob;
 
-    private _sha1: string;
+    private _etag?: string;
 
     init(params: IMusicUploadRawParams): Promise<this> {
-        const { name, blob, url, artist, picBlob } = params;
+        const { name, blob, url, artist, picBlob, etag } = params;
 
         const nameArr = name.split('.');
         this._format = nameArr[nameArr.length - 1];
@@ -34,13 +33,12 @@ export class MusicUploadElement {
         const blobUrl = URL.createObjectURL(blob);
 
         this._url = url;
+        this._etag = etag;
 
         return new Promise(async (resolve) => {
             const audio = new Audio(blobUrl);
             audio.onloadeddata = async () => {
                 this._duration = audio.duration;
-                this._sha1 = await Sha1Generator.blob2Sha1(this._blob);
-
                 const metadata = await musicMetadata.parseBlob(blob);
                 const pic = metadata.common.picture?.[0];
                 if (pic) {
@@ -68,8 +66,8 @@ export class MusicUploadElement {
             artist: this._artist,
             picBlob: this._picBlob,
             blob: this._blob,
-            sha1: this._sha1,
             status: this._status,
+            etag: this._etag,
         };
     }
 }

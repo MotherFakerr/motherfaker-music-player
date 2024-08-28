@@ -1,9 +1,10 @@
 import { IMusicEntity } from '@github-music-player/element';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-export interface IMusicFile {
+export interface IMusicFetchParams {
     name: string;
-    download_url: string;
+    url: string;
+    etag?: string;
 }
 
 export interface IMusic extends IMusicEntity {

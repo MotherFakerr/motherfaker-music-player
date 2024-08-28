@@ -1,53 +1,41 @@
 .play-list-adder-modal {
-    .ant-divider {
-        color: white;
-        font-weight: 700;
+    .title {
+        color: #E0E0E0;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 24px;
     }
-    .upload-container {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        justify-content: center;
-        h2 {
-            text-align: center;
-            margin: 0 0 30px;
-            color: white ;
-        }
-
-        .ant-input-group-addon {
-            button {
-                color: white;
-                background-color: #5c6675;
-                border: 1px solid white;
-                &:hover {
-                    
-                    background-color: #5c6675;
-                }
+    .ant-segmented {
+        background-color: #252525;
+        margin-bottom: 16px;
+        .ant-segmented-item {
+            color: #A0A0A0 !important;
+            &.ant-segmented-item-selected {
+                color: #FFFFFF !important;
+                background-color: #333333;
             }
             &:hover {
-                box-shadow: 0 0 5px #ffffff;
-            }
-            
-           
-        }
-    
-
-        .ant-upload-wrapper {
-
-            height: 160px;
-            .iconfont {
-                color: white;
-                font-size: 48px;
-            }
-            p {
-                color: #cccccc;
-                font-size: 16px;
+                color: #FFFFFF !important;;
             }
         }
-
-
-
-
+        .ant-segmented-thumb {
+            background-color: #333333;
+        }
     }
+    .ant-upload {
+        width: 100%;
+    }
+    .ant-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(54, 48, 48);
+        &:hover {
+            background-color: rgb(250 247 245 / 30%) !important;
+        }
+    }
+
+
 
 }

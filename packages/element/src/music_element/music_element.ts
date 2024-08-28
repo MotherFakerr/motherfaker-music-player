@@ -30,10 +30,10 @@ export class MusicElement implements IMusicElement {
 
     private _picBlobUrl?: string;
 
-    private _sha1: string;
+    private _etag?: string;
 
     init(params: IMusicEntity): this {
-        const { id, name, format, blob, url, sha1, artist, picBlob, duration } = params;
+        const { id, name, format, blob, url, etag, artist, picBlob, duration } = params;
 
         this._id = id;
         const nameArr = name.split('.');
@@ -51,7 +51,7 @@ export class MusicElement implements IMusicElement {
 
         this._url = url;
         this._duration = duration;
-        this._sha1 = sha1;
+        this._etag = etag;
         return this;
     }
 
@@ -95,8 +95,8 @@ export class MusicElement implements IMusicElement {
         return this._picBlobUrl;
     }
 
-    public get sha1(): string {
-        return this._sha1;
+    public get etag(): string | undefined {
+        return this._etag;
     }
 
     public getDurationString(): string {
@@ -117,7 +117,7 @@ export class MusicElement implements IMusicElement {
             artist: this.artist,
             picBlob: this.picBlob,
             blob: this._blob,
-            sha1: this.sha1,
+            etag: this._etag,
         };
     }
 }

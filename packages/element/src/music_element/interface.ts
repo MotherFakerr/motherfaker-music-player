@@ -14,7 +14,7 @@ export interface IMusicElement {
     artist?: string;
     picBlob?: Blob;
     picBlobUrl?: string;
-    sha1: string;
+    etag?: string;
 }
 
 export interface IMusicEntity extends IMusicUploadParams {
@@ -24,7 +24,6 @@ export interface IMusicEntity extends IMusicUploadParams {
 export interface IMusicUploadParams extends IMusicUploadRawParams {
     format?: string;
     duration: number;
-    sha1: string;
 }
 
 export interface IMusicUploadRawParams {
@@ -33,4 +32,5 @@ export interface IMusicUploadRawParams {
     artist?: string;
     picBlob?: Blob;
     blob: Blob;
+    etag?: string;
 }

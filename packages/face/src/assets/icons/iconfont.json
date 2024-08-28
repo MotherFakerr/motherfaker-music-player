@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "41659343",
+      "name": "ai-music",
+      "font_class": "ai-music",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1445515",
+      "name": "upload",
+      "font_class": "upload",
+      "unicode": "e90b",
+      "unicode_decimal": 59659
+    },
+    {
       "icon_id": "1445192",
       "name": "repeat",
       "font_class": "repeat",
