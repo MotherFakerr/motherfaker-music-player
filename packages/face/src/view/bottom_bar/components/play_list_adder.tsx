@@ -1,11 +1,10 @@
 import React from 'react';
 import './play_list_adder.less';
 import { inject, observer } from 'mobx-react';
-import { Button, Card, Divider, Input, Modal, Segmented, Tabs, Upload, message } from 'antd';
+import { Button, Input, Modal, Segmented, Upload, message } from 'antd';
 import { IMusicStore } from '../../../store/music_store';
 import { ILoadingStore } from '../../../store/loading_store';
 import { MusicIndexDBHelper } from '../../../utils/indexdb_utils/music_indexdb_helper';
-import TabPane from 'antd/es/tabs/TabPane';
 
 interface IProps {
     musicStore: IMusicStore;
@@ -28,7 +27,7 @@ export class PlayListAdder extends React.Component<Partial<IProps>, IState> {
         super(props);
         this.state = {
             isShow: false,
-            inputUrl: 'https://github.com/MotherFakerr/My-Suno-Collection',
+            inputUrl: '',
             tabKey: TAB_OPTIONS[0],
         };
     }
